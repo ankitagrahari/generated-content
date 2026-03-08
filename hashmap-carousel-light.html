@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HashMap Collision — Light Carousel</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:      #f4f1eb;
+  --paper:   #faf8f3;
+  --ink:     #111111;
+  --ink2:    #333333;
+  --ink3:    #666666;
+  --rule:    #d8d3c8;
+  --red:     #d42b2b;
+  --red-lt:  #fdeaea;
+  --red-mid: #f5b8b8;
+  --orange:  #c85a00;
+  --org-lt:  #fef3e8;
+  --green:   #1a6e3c;
+  --grn-lt:  #e6f5ed;
+  --blue:    #1a4ec8;
+  --blu-lt:  #e8effe;
+  --purple:  #6b21c8;
+  --pur-lt:  #f0e8fe;
+}
+
+body {
+  background: #e8e4dc;
+  font-family: 'IBM Plex Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── SHELL & TRACK ─── */
+.shell { width: 540px; position: relative; }
+
+.track-wrap {
+  width: 540px; height: 540px;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  border: 2px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+.track-wrap:active { cursor: grabbing; }
+
+.track {
+  display: flex; height: 100%;
+  transition: transform 0.45s cubic-bezier(0.77,0,0.175,1);
+  will-change: transform;
+}
+
+/* ─── SLIDE BASE ─── */
+.slide {
+  width: 540px; height: 540px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+/* Top accent stripe */
+.tbar {
+  position: absolute; top:0; left:0; right:0; height:5px;
+  background: var(--ink);
+  z-index: 20;
+}
+
+/* Slide number & tag */
+.stag {
+  position: absolute; top:16px; left:22px;
+  font-size: 9px; letter-spacing:3px;
+  text-transform: uppercase; color: var(--red);
+  font-weight: 600; z-index:20;
+}
+.snum {
+  position: absolute; top:16px; right:22px;
+  font-size: 9px; letter-spacing:2px;
+  color: var(--ink3); z-index:20;
+}
+
+/* Bottom rule */
+.bline {
+  position: absolute; bottom:0; left:0; right:0; height:3px;
+  background: var(--ink); z-index:20;
+}
+
+/* ══════════════════════════════════════
+   SLIDE 1 — HOOK
+══════════════════════════════════════ */
+#s1 {
+  background: var(--ink);
+}
+
+#s1 .bg-dots {
+  position: absolute; inset:0; z-index:1;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+#s1 .tbar { background: var(--red); }
+#s1 .bline { background: var(--red); }
+#s1 .stag { color: rgba(255,255,255,0.35); }
+#s1 .snum { color: rgba(255,255,255,0.2); }
+
+#s1 .center {
+  position:absolute; inset:0; z-index:10;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:52px 40px; text-align:center;
+}
+
+#s1 .eye {
+  font-size:9px; letter-spacing:5px;
+  text-transform:uppercase; color:rgba(255,255,255,0.3);
+  margin-bottom:20px;
+}
+
+#s1 .hook-title {
+  font-family:'Bebas Neue', cursive;
+  font-size:60px; color:#fff; line-height:0.95;
+  letter-spacing:2px; text-transform:uppercase;
+  margin-bottom:10px;
+}
+#s1 .hook-title .danger {
+  color: var(--red);
+  display:block;
+}
+
+#s1 .hook-desc {
+  font-size:12px; color:rgba(255,255,255,0.45);
+  line-height:1.7; margin-bottom:28px;
+  letter-spacing:0.3px;
+}
+#s1 .hook-desc strong { color:rgba(255,255,255,0.8); }
+
+#s1 .formula {
+  background: rgba(212,43,43,0.15);
+  border: 1px solid rgba(212,43,43,0.4);
+  padding: 10px 22px;
+  font-size:13px; color:#ff8080;
+  letter-spacing:2px; margin-bottom:28px;
+}
+
+#s1 .swipe {
+  font-size:9px; letter-spacing:4px;
+  text-transform:uppercase; color:rgba(255,255,255,0.18);
+  animation: blink 2.2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:0.2} 50%{opacity:1} }
+
+/* ══════════════════════════════════════
+   SHARED CONTENT LAYOUT
+══════════════════════════════════════ */
+.content {
+  position:absolute; inset:0; z-index:10;
+  padding:44px 26px 20px;
+  display:flex; flex-direction:column;
+}
+
+/* Headline styles */
+.headline {
+  font-family:'Bebas Neue', cursive;
+  font-size:38px; color:var(--ink);
+  line-height:0.95; letter-spacing:1px;
+  text-transform:uppercase; margin-bottom:4px;
+}
+.headline .red   { color:var(--red); }
+.headline .blue  { color:var(--blue); }
+.headline .green { color:var(--green); }
+.headline .pur   { color:var(--purple); }
+.headline .org   { color:var(--orange); }
+
+.eyebrow {
+  font-size:8px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--ink3);
+  margin-bottom:14px; border-bottom:1px solid var(--rule);
+  padding-bottom:8px;
+}
+
+/* Info block */
+.iblock {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--red);
+  padding:12px 14px; margin-bottom:12px;
+}
+.iblock p { font-size:11px; color:var(--ink2); line-height:1.8; }
+.iblock p .bold { color:var(--ink); font-weight:600; }
+.iblock p .code { color:var(--orange); font-weight:600; }
+.iblock p .red  { color:var(--red); font-weight:600; }
+
+/* ══════════════════════════════════════
+   SLIDE 2 — HOW HASHMAP WORKS
+══════════════════════════════════════ */
+.step-list { display:flex; flex-direction:column; gap:8px; }
+
+.step-item {
+  display:flex; align-items:flex-start; gap:12px;
+  background:#fff; border:1px solid var(--rule);
+  padding:10px 12px;
+}
+
+.sn {
+  width:26px; height:26px; flex-shrink:0;
+  background:var(--ink); color:#fff;
+  font-family:'Bebas Neue', cursive;
+  font-size:15px; display:flex;
+  align-items:center; justify-content:center;
+}
+
+.st { font-size:11px; color:var(--ink2); line-height:1.65; }
+.st strong { color:var(--ink); display:block; font-size:11px; margin-bottom:1px; }
+
+/* ══════════════════════════════════════
+   SLIDE 3 — COLLISION DEMO
+══════════════════════════════════════ */
+.coll-demo { display:flex; flex-direction:column; gap:8px; flex:1; }
+
+.coll-row {
+  display:grid; grid-template-columns:1fr 44px 1fr;
+  align-items:center; gap:0;
+}
+
+.cr-key, .cr-slot {
+  padding:10px 14px; border:2px solid;
+  display:flex; flex-direction:column;
+}
+.cr-key  { align-items:flex-start; }
+.cr-slot { align-items:flex-end; }
+
+.crl { font-size:8px; letter-spacing:2px; text-transform:uppercase; margin-bottom:2px; }
+.crv { font-family:'Bebas Neue', cursive; font-size:22px; line-height:1; }
+
+.cr-arrow { display:flex; align-items:center; justify-content:center; font-size:13px; }
+
+/* safe row */
+.coll-row.safe .cr-key  { border-color:var(--green); background:var(--grn-lt); }
+.coll-row.safe .crl     { color:var(--green); }
+.coll-row.safe .crv     { color:var(--green); }
+.coll-row.safe .cr-slot { border-color:var(--green); background:var(--grn-lt); }
+.coll-row.safe .cr-arrow { color:var(--green); }
+
+/* collision row */
+.coll-row.boom .cr-key  { border-color:var(--red); background:var(--red-lt); }
+.coll-row.boom .crl     { color:var(--red); }
+.coll-row.boom .crv     { color:var(--red); }
+.coll-row.boom .cr-slot { border-color:var(--red); background:var(--red-lt); }
+.coll-row.boom .cr-arrow { color:var(--red); }
+
+.boom-label {
+  background:var(--red); color:#fff;
+  font-size:9px; font-weight:700;
+  letter-spacing:3px; padding:6px 14px;
+  text-transform:uppercase; text-align:center;
+  align-self:stretch;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+/* ══════════════════════════════════════
+   SLIDE 4 — CHAINING
+══════════════════════════════════════ */
+.chain-rows { display:flex; flex-direction:column; gap:5px; flex:1; }
+
+.chain-row {
+  display:grid; grid-template-columns:34px 1fr;
+  gap:5px; align-items:center;
+}
+
+.cidx {
+  height:38px; background:var(--ink); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px;
+}
+
+.cchain { display:flex; align-items:center; gap:3px; }
+
+.cnode {
+  padding:5px 10px; border:2px solid;
+  display:flex; flex-direction:column; min-width:72px;
+}
+.ck { font-size:10px; font-weight:700; margin-bottom:1px; }
+.cv { font-size:9px; color:var(--ink3); }
+
+.clink { font-size:14px; color:var(--rule); padding:0 2px; }
+.cnull { font-size:10px; color:var(--rule); padding-left:4px; }
+.cempty { flex:1; background:var(--bg); border:1px dashed var(--rule); height:38px; display:flex; align-items:center; padding:0 12px; font-size:9px; color:var(--rule); letter-spacing:1px; }
+
+/* node colors */
+.na { border-color:var(--green); background:var(--grn-lt); }
+.na .ck { color:var(--green); }
+.nb { border-color:var(--blue); background:var(--blu-lt); }
+.nb .ck { color:var(--blue); }
+.nc { border-color:var(--orange); background:var(--org-lt); }
+.nc .ck { color:var(--orange); }
+.nd { border-color:var(--red); background:var(--red-lt); }
+.nd .ck { color:var(--red); }
+
+.pc-wrap { display:flex; gap:8px; margin-top:8px; }
+.pc-box  { flex:1; padding:9px 11px; border:1px solid; }
+.pc-box.pro { border-color:var(--green); background:var(--grn-lt); }
+.pc-box.con { border-color:var(--red); background:var(--red-lt); }
+.pct { font-size:8px; letter-spacing:2px; text-transform:uppercase; font-weight:700; margin-bottom:5px; }
+.pc-box.pro .pct { color:var(--green); }
+.pc-box.con .pct { color:var(--red); }
+.pci { font-size:9px; color:var(--ink2); line-height:1.7; }
+.pci::before { content:'› '; color:var(--ink3); }
+
+/* ══════════════════════════════════════
+   SLIDE 5 — OPEN ADDRESSING
+══════════════════════════════════════ */
+.probe-rows { display:flex; flex-direction:column; gap:4px; flex:1; }
+
+.probe-row {
+  display:grid; grid-template-columns:34px 1fr 68px;
+  gap:4px; align-items:center;
+}
+
+.pidx {
+  height:36px; background:var(--ink); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px;
+}
+
+.pcell {
+  height:36px; border:1px solid var(--rule);
+  background:#fff;
+  display:flex; align-items:center;
+  padding:0 12px; font-size:11px; color:var(--ink3);
+}
+
+.ptag {
+  height:36px; border:1px solid var(--rule);
+  display:flex; align-items:center; justify-content:center;
+  font-size:9px; color:var(--ink3);
+  background: var(--bg);
+  letter-spacing:0.5px;
+}
+
+/* states */
+.probe-row.occ  .pcell { background:var(--blu-lt); border-color:var(--blue); color:var(--blue); font-weight:600; }
+.probe-row.occ  .ptag  { background:var(--blu-lt); border-color:var(--blue); color:var(--blue); }
+.probe-row.tgt  .pcell { background:var(--red-lt); border-color:var(--red); color:var(--red); font-weight:700; animation:pulse 1.2s infinite; }
+.probe-row.tgt  .ptag  { background:var(--red-lt); border-color:var(--red); color:var(--red); font-weight:700; }
+.probe-row.prb  .pcell { background:var(--org-lt); border-color:var(--orange); color:var(--orange); font-weight:600; }
+.probe-row.prb  .ptag  { background:var(--org-lt); border-color:var(--orange); color:var(--orange); font-weight:600; }
+.probe-row.ok   .pcell { background:var(--grn-lt); border-color:var(--green); color:var(--green); font-weight:700; }
+.probe-row.ok   .ptag  { background:var(--grn-lt); border-color:var(--green); color:var(--green); font-weight:700; }
+
+/* ══════════════════════════════════════
+   SLIDE 6 — LOAD FACTOR
+══════════════════════════════════════ */
+.lf-header {
+  display:flex; justify-content:space-between;
+  font-size:9px; color:var(--ink3);
+  margin-bottom:4px; letter-spacing:1px;
+}
+
+.lf-bar-wrap { margin-bottom:16px; }
+
+.lf-track {
+  height:16px; background:var(--rule); border:1px solid var(--ink);
+  overflow:hidden; position:relative; margin-bottom:4px;
+}
+.lf-fill {
+  height:100%; position:absolute; top:0; left:0;
+  background:linear-gradient(90deg, var(--green), var(--orange), var(--red));
+  transform-origin:left;
+  animation:grow 1.2s cubic-bezier(0.4,0,0.2,1) 0.3s both;
+}
+@keyframes grow { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+.lf-tick {
+  display:flex; justify-content:space-between;
+  font-size:8px; color:var(--ink3);
+}
+
+.lf-zones { display:flex; flex-direction:column; gap:7px; }
+
+.lf-zone {
+  display:flex; align-items:stretch; gap:0;
+  border:2px solid;
+}
+
+.lzr {
+  width:68px; flex-shrink:0;
+  padding:8px 6px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Bebas Neue', cursive; font-size:18px;
+  border-right:2px solid;
+}
+.lzt {
+  padding:8px 12px; font-size:10px; line-height:1.5;
+  display:flex; flex-direction:column; justify-content:center;
+}
+.lzt strong { display:block; font-size:11px; margin-bottom:2px; }
+.lzt span   { color:var(--ink3); font-size:10px; }
+
+.lf-zone.safe   { border-color:var(--green); }
+.lf-zone.safe   .lzr { color:var(--green); background:var(--grn-lt); border-color:var(--green); }
+.lf-zone.safe   .lzt strong { color:var(--green); }
+
+.lf-zone.warn   { border-color:var(--orange); }
+.lf-zone.warn   .lzr { color:var(--orange); background:var(--org-lt); border-color:var(--orange); }
+.lf-zone.warn   .lzt strong { color:var(--orange); }
+
+.lf-zone.danger { border-color:var(--red); }
+.lf-zone.danger .lzr { color:var(--red); background:var(--red-lt); border-color:var(--red); animation:pulse 1.4s infinite; }
+.lf-zone.danger .lzt strong { color:var(--red); }
+
+/* ══════════════════════════════════════
+   SLIDE 7 — DOUBLE HASHING
+══════════════════════════════════════ */
+.dh-formula {
+  background:#fff; border:2px solid var(--purple);
+  padding:12px 16px; margin-bottom:14px;
+}
+.dh-formula code {
+  display:block; font-size:12px;
+  color:var(--purple); font-weight:600;
+  letter-spacing:0.5px; line-height:2;
+}
+.dh-formula .cmt { color:var(--ink3); font-size:10px; letter-spacing:0.5px; }
+
+.dh-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; flex:1; }
+
+.dh-box { border:2px solid; padding:12px 12px; display:flex; flex-direction:column; gap:8px; }
+.dh-box.bad  { border-color:var(--red); background:var(--red-lt); }
+.dh-box.good { border-color:var(--purple); background:var(--pur-lt); }
+.dh-box-ttl { font-size:8px; letter-spacing:3px; text-transform:uppercase; font-weight:700; }
+.dh-box.bad  .dh-box-ttl { color:var(--red); }
+.dh-box.good .dh-box-ttl { color:var(--purple); }
+
+.dh-slots { display:flex; gap:3px; }
+.dhs {
+  width:30px; height:30px; border:2px solid;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700;
+}
+.dhs.empty   { border-color:var(--rule); color:var(--rule); background:#fff; }
+.dhs.cluster { border-color:var(--red); color:var(--red); background:var(--red-lt); }
+.dhs.newc    { border-color:#c85a00; color:var(--orange); background:var(--org-lt); animation:pulse 1s infinite; }
+.dhs.spread  { border-color:var(--purple); color:var(--purple); background:var(--pur-lt); }
+.dhs.news    { border-color:var(--green); color:var(--green); background:var(--grn-lt); animation:pulse 1s infinite; }
+
+.dh-desc { font-size:10px; color:var(--ink2); line-height:1.6; }
+
+/* ══════════════════════════════════════
+   SLIDE 8 — JAVA CODE
+══════════════════════════════════════ */
+.code-wrap {
+  flex:1; background:#1e1e2e; border:2px solid var(--ink);
+  padding:14px 16px; margin-top:12px; overflow:hidden; position:relative;
+}
+.code-lang {
+  position:absolute; top:8px; right:12px;
+  font-size:8px; letter-spacing:2px; color:#444; text-transform:uppercase;
+}
+.cl { display:block; font-size:10.5px; line-height:1.9; white-space:pre; }
+.lc { color:#444; }
+.lk { color:#79b8ff; }
+.lt { color:#ffab70; }
+.lf { color:#b5f4a5; }
+.ls { color:#f97583; }
+.ln { color:#cc99ff; }
+.lp { color:#cdd9e5; }
+.lw { color:#ff6b6b; font-weight:600; }
+
+/* ══════════════════════════════════════
+   SLIDE 9 — COMPARISON
+══════════════════════════════════════ */
+.cmp-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; flex:1; margin-top:12px; }
+
+.cmp-card { border:2px solid; padding:14px 12px; display:flex; flex-direction:column; gap:0; }
+.cmp-card.ch { border-color:var(--blue); background:var(--blu-lt); }
+.cmp-card.oa { border-color:var(--green); background:var(--grn-lt); }
+
+.cc-title { font-family:'Bebas Neue', cursive; font-size:22px; margin-bottom:2px; }
+.cmp-card.ch .cc-title { color:var(--blue); }
+.cmp-card.oa .cc-title { color:var(--green); }
+
+.cc-sub { font-size:8px; letter-spacing:1px; color:var(--ink3); margin-bottom:10px; border-bottom:1px solid; padding-bottom:6px; }
+.cmp-card.ch .cc-sub { border-color:rgba(26,78,200,0.2); }
+.cmp-card.oa .cc-sub { border-color:rgba(26,110,60,0.2); }
+
+.cc-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:5px 0; border-bottom:1px solid;
+  font-size:10px;
+}
+.cc-row:last-child { border-bottom:none; }
+.cmp-card.ch .cc-row { border-color:rgba(26,78,200,0.12); }
+.cmp-card.oa .cc-row { border-color:rgba(26,110,60,0.12); }
+
+.cc-lbl { color:var(--ink3); }
+.cc-val { font-weight:700; }
+.cmp-card.ch .cc-val { color:var(--blue); }
+.cmp-card.oa .cc-val { color:var(--green); }
+
+/* ══════════════════════════════════════
+   SLIDE 10 — CTA
+══════════════════════════════════════ */
+#s10 { background: var(--ink); }
+#s10 .tbar { background:var(--red); }
+#s10 .bline { background:var(--red); }
+#s10 .stag { color:rgba(255,255,255,0.3); }
+#s10 .snum { color:rgba(255,255,255,0.2); }
+
+#s10 .cta-inner {
+  position:absolute; inset:0; z-index:10;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  text-align:center; padding:52px 36px 32px;
+}
+
+#s10 .cta-eye { font-size:8px; letter-spacing:5px; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-bottom:16px; }
+
+#s10 .cta-title {
+  font-family:'Bebas Neue', cursive;
+  font-size:40px; color:#fff;
+  line-height:1.05; text-transform:uppercase;
+  margin-bottom:16px;
+}
+#s10 .cta-title .r { color:var(--red); }
+
+#s10 .cta-body { font-size:11px; color:rgba(255,255,255,0.4); line-height:1.85; max-width:360px; margin-bottom:24px; }
+#s10 .cta-body .hi { color:rgba(255,255,255,0.75); }
+
+.cta-btns { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:20px; }
+
+.cb-btn {
+  padding:8px 18px; font-size:9px;
+  letter-spacing:2px; text-transform:uppercase;
+  cursor:pointer; font-family:'IBM Plex Mono', monospace;
+}
+.cb-btn.p { background:var(--red); color:#fff; border:2px solid var(--red); }
+.cb-btn.s { background:transparent; color:rgba(255,255,255,0.4); border:1px solid rgba(255,255,255,0.15); }
+
+#s10 .ht { font-size:9px; color:rgba(255,255,255,0.12); line-height:1.8; }
+
+/* ─── CONTROLS ─── */
+.controls {
+  display:flex; align-items:center; justify-content:center;
+  gap:14px; margin-top:14px;
+}
+
+.nbtn {
+  width:36px; height:36px;
+  background:var(--paper); border:2px solid var(--ink);
+  color:var(--ink); font-size:14px;
+  cursor:pointer; display:flex;
+  align-items:center; justify-content:center;
+  transition:all 0.15s; box-shadow:2px 2px 0 var(--ink);
+}
+.nbtn:hover { background:var(--ink); color:#fff; }
+.nbtn:disabled { opacity:0.2; cursor:default; box-shadow:none; }
+
+.dots { display:flex; gap:5px; align-items:center; }
+.dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--rule); cursor:pointer; transition:all 0.3s;
+  border:1px solid var(--ink);
+}
+.dot.active { background:var(--red); border-color:var(--red); width:18px; border-radius:3px; }
+
+.counter { font-size:9px; color:var(--ink3); letter-spacing:2px; min-width:48px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="track-wrap" id="tw">
+    <div class="track" id="track">
+
+      <!-- ══ SLIDE 1 — HOOK ══ -->
+      <div class="slide" id="s1">
+        <div class="tbar"></div>
+        <div class="bline"></div>
+        <div class="stag">hashmap · 01</div>
+        <div class="snum">01 / 10</div>
+        <div class="bg-dots"></div>
+        <div class="center">
+          <div class="eye">data structures · hashing</div>
+          <div class="hook-title">Two Keys.<br>Same <span class="danger">Slot.</span><br>Now What?</div>
+          <div class="hook-desc">
+            HashMaps promise <strong>O(1)</strong> lookup.<br>
+            But two keys can hash to the same bucket.<br>
+            That's a collision — and here's how it's solved.
+          </div>
+          <div class="formula">index = hash(key) % capacity</div>
+          <div class="swipe">swipe to learn ›</div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 2 — HOW HASHMAP WORKS ══ -->
+      <div class="slide" id="s2">
+        <div class="tbar"></div><div class="bline"></div>
+        <div class="stag">hashmap · 02</div><div class="snum">02 / 10</div>
+        <div class="content">
+          <div class="headline">How a <span class="red">HashMap</span> Works</div>
+          <div class="eyebrow">the happy path — before collisions</div>
+          <div class="iblock">
+            <p>A HashMap stores key-value pairs. It uses a <span class="bold">hash function</span> to convert any key into an integer, then uses <span class="code">hash(key) % capacity</span> to pick a bucket index. <span class="red">When every key maps to a unique slot</span> — pure O(1).</p>
+          </div>
+          <div class="step-list">
+            <div class="step-item">
+              <div class="sn">1</div>
+              <div class="st"><strong>Hash the key</strong>Run "alice" through hash fn → integer 2,847,362</div>
+            </div>
+            <div class="step-item">
+              <div class="sn">2</div>
+              <div class="st"><strong>Modulo by capacity</strong>2,847,362 % 8 = slot 2 → store pair at index 2</div>
+            </div>
+            <div class="step-item">
+              <div class="sn">3</div>
+              <div class="st"><strong>Retrieve in O(1)</strong>hash("alice") % 8 = 2 → jump to index 2 instantly</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 3 — COLLISION ══ -->
+      <div class="slide" id="s3">
+        <div class="tbar"></div><div class="bline"></div>
+        <div class="stag">hashmap · 03</div><div class="snum">03 / 10</div>
+        <div class="content">
+          <div class="headline">The <span class="red">Collision</span></div>
+          <div class="eyebrow">two keys. one slot. total conflict.</div>
+          <div class="coll-demo">
+            <div class="coll-row safe">
+              <div class="cr-key"><div class="crl">key</div><div class="crv">"alice"</div></div>
+              <div class="cr-arrow">──▶</div>
+              <div class="cr-slot"><div class="crl">maps to slot</div><div class="crv">[ 3 ]</div></div>
+            </div>
+            <div class="coll-row safe">
+              <div class="cr-key"><div class="crl">key</div><div class="crv">"bob"</div></div>
+              <div class="cr-arrow">──▶</div>
+              <div class="cr-slot"><div class="crl">maps to slot</div><div class="crv">[ 6 ]</div></div>
+            </div>
+            <div class="coll-row boom">
+              <div class="cr-key"><div class="crl">key</div><div class="crv">"carol"</div></div>
+              <div class="cr-arrow">──▶</div>
+              <div class="cr-slot"><div class="crl">COLLISION at</div><div class="crv">[ 3 ] ⚡</div></div>
+            </div>
+            <div class="boom-label">⚡ slot 3 already taken by "alice" — now what?</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 4 — CHAINING ══ -->
+      <div class="slide" id="s4">
+        <div class="tbar"></div><div class="bline"></div>
+        <div class="stag">hashmap · 04</div><div class="snum">04 / 10</div>
+        <div class="content">
+          <div class="headline">Fix 1: <span class="blue">Chaining</span></div>
+          <div class="eyebrow">each bucket holds a linked list of entries</div>
+          <div class="chain-rows">
+            <div class="chain-row">
+              <div class="cidx">0</div>
+              <div class="cchain"><div class="cempty">null</div></div>
+            </div>
+            <div class="chain-row">
+              <div class="cidx">1</div>
+              <div class="cchain">
+                <div class="cnode nb"><div class="ck">"bob"</div><div class="cv">age=35</div></div>
+                <div class="clink">→</div>
+                <div class="cnode nc"><div class="ck">"carol"</div><div class="cv">age=22</div></div>
+                <div class="cnull">→ null</div>
+              </div>
+            </div>
+            <div class="chain-row">
+              <div class="cidx">2</div>
+              <div class="cchain"><div class="cempty">null</div></div>
+            </div>
+            <div class="chain-row">
+              <div class="cidx">3</div>
+              <div class="cchain">
+                <div class="cnode na"><div class="ck">"alice"</div><div class="cv">age=28</div></div>
+                <div class="clink">→</div>
+                <div class="cnode nd"><div class="ck">"dave"</div><div class="cv">age=41</div></div>
+                <div class="cnull">→ null</div>
+              </div>
+            </div>
+            <div class="chain-row">
+              <div class="cidx">4</div>
+              <div class="cchain"><div class="cempty">null</div></div>
+            </div>
+          </div>
+          <div class="pc-wrap">
+            <div class="pc-box pro">
+              <div class="pct">pros</div>
+              <div class="pci">Simple to implement</div>
+              <div class="pci">Handles high load well</div>
+              <div class="pci">Easy deletion</div>
+            </div>
+            <div class="pc-box con">
+              <div class="pct">cons</div>
+              <div class="pci">Extra memory for pointers</div>
+              <div class="pci">Cache-unfriendly</div>
+              <div class="pci">Worst case O(n) per chain</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 5 — OPEN ADDRESSING ══ -->
+      <div class="slide" id="s5">
+        <div class="tbar"></div><div class="bline"></div>
+        <div class="stag">hashmap · 05</div><div class="snum">05 / 10</div>
+        <div class="content">
+          <div class="headline">Fix 2: <span class="org">Open Addr.</span></div>
+          <div class="eyebrow">linear probe — walk until you find empty slot</div>
+          <div class="probe-rows">
+            <div class="probe-row" style="font-size:8px;letter-spacing:2px">
+              <div class="pidx" style="background:var(--rule);color:var(--ink3)">IDX</div>
+              <div class="pcell" style="color:var(--ink3);font-size:9px;background:var(--bg)">KEY → VALUE</div>
+              <div class="ptag" style="font-size:8px;color:var(--ink3)">PROBE</div>
+            </div>
+            <div class="probe-row occ">
+              <div class="pidx">0</div>
+              <div class="pcell">"eve" → age=19</div>
+              <div class="ptag">h=0, +0</div>
+            </div>
+            <div class="probe-row">
+              <div class="pidx">1</div>
+              <div class="pcell" style="color:var(--rule)">— empty —</div>
+              <div class="ptag">—</div>
+            </div>
+            <div class="probe-row tgt">
+              <div class="pidx">2</div>
+              <div class="pcell">"alice" ← target slot ⚡</div>
+              <div class="ptag">h=2, +0</div>
+            </div>
+            <div class="probe-row prb">
+              <div class="pidx">3</div>
+              <div class="pcell">"carol" → h=2, probe +1</div>
+              <div class="ptag">+1 ⚡</div>
+            </div>
+            <div class="probe-row occ">
+              <div class="pidx">4</div>
+              <div class="pcell">"bob" → age=35</div>
+              <div class="ptag">h=4, +0</div>
+            </div>
+            <div class="probe-row ok">
+              <div class="pidx">5</div>
+              <div class="pcell">"dave" → h=4, probe +1</div>
+              <div class="ptag">+1 ✓ placed</div>
+            </div>
+          </div>
+          <div class="iblock" style="margin-top:8px;border-left-color:var(--orange)">
+            <p>Collision → probe +1 → occupied → probe +2 → empty → <span class="bold">place here</span>. No extra memory. One flat array.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 6 — LOAD FACTOR ══ -->
+      <div class="slide" id="s6">
+        <div class="tbar"></div><div class="bline"></div>
+        <div class="stag">hashmap · 06</div><div class="snum">06 / 10</div>
+        <div class="content">
+          <div class="headline">Load <span class="org">Factor</span></div>
+          <div class="eyebrow">the number that controls collision frequency</div>
+          <div class="lf-bar-wrap">
+            <div class="lf-header">
+              <span>load factor = entries ÷ capacity</span>
+              <span style="color:var(--orange);font-weight:600">Java default: 0.75</span>
+            </div>
+            <div class="lf-track">
+              <div class="lf-fill" style="width:75%"></div>
+            </div>
+            <div class="lf-tick">
+              <span>0.0 empty</span>
+              <span>0.5</span>
+              <span style="color:var(--orange);font-weight:600">0.75 ◀</span>
+              <span>1.0 full</span>
+            </div>
+          </div>
+          <div class="lf-zones">
+            <div class="lf-zone safe">
+              <div class="lzr">≤ 0.5</div>
+              <div class="lzt">
+                <strong>Low Collision Risk</strong>
+                <span>Rare collisions. O(1) guaranteed. Half the table sits empty — wastes memory.</span>
+              </div>
+            </div>
+            <div class="lf-zone warn">
+              <div class="lzr">0.75</div>
+              <div class="lzt">
+                <strong>Java's Sweet Spot</strong>
+                <span>Managed collisions. O(1) amortized. HashMap resizes and rehashes at this point.</span>
+              </div>
+            </div>
+            <div class="lf-zone danger">
+              <div class="lzr">≥ 0.9</div>
+              <div class="lzt">
+                <strong>Collision Cascade ⚡</strong>
+                <span>Long probe chains. Degrades toward O(n). Never let it reach here.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 7 — DOUBLE HASHING ══ -->
+      <div class="slide" id="s7">
+        <div class="tbar"></div><div class="bline"></div>
+        <div class="stag">hashmap · 07</div><div class="snum">07 / 10</div>
+        <div class="content">
+          <div class="headline">Double <span class="pur">Hashing</span></div>
+          <div class="eyebrow">smarter probing — eliminate clustering</div>
+          <div class="dh-formula">
+            <code>probe(i) = (h1(key) + i × h2(key)) % m</code>
+            <div class="cmt">// vs linear: (h1(key) + i) % m — step varies per key</div>
+          </div>
+          <div class="dh-grid">
+            <div class="dh-box bad">
+              <div class="dh-box-ttl">🔴 Linear Probe</div>
+              <div class="dh-slots">
+                <div class="dhs cluster">A</div>
+                <div class="dhs cluster">B</div>
+                <div class="dhs cluster">C</div>
+                <div class="dhs newc">D</div>
+                <div class="dhs empty">·</div>
+                <div class="dhs empty">·</div>
+              </div>
+              <div class="dh-desc">Keys pile up — clusters form and merge. Each new collision makes the next more likely.</div>
+            </div>
+            <div class="dh-box good">
+              <div class="dh-box-ttl">🟣 Double Hash</div>
+              <div class="dh-slots">
+                <div class="dhs spread">A</div>
+                <div class="dhs empty">·</div>
+                <div class="dhs spread">C</div>
+                <div class="dhs empty">·</div>
+                <div class="dhs news">D</div>
+                <div class="dhs spread">B</div>
+              </div>
+              <div class="dh-desc">Step size varies per key. Elements scatter uniformly. No clustering. O(1) maintained.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 8 — JAVA CODE ══ -->
+      <div class="slide" id="s8">
+        <div class="tbar"></div><div class="bline"></div>
+        <div class="stag">hashmap · 08</div><div class="snum">08 / 10</div>
+        <div class="content">
+          <div class="headline">In <span class="red">Java</span></div>
+          <div class="eyebrow">how HashMap handles collisions under the hood</div>
+          <div class="code-wrap">
+            <div class="code-lang">Java 8+</div>
+            <code class="cl"><span class="lc">// Java HashMap uses chaining by default</span></code>
+            <code class="cl"><span class="lc">// Bucket = linked list OR red-black tree</span></code>
+            <code class="cl"> </code>
+            <code class="cl"><span class="lt">Map</span><span class="lp">&lt;</span><span class="lt">String</span><span class="lp">, </span><span class="lt">Integer</span><span class="lp">&gt; map = </span><span class="lk">new</span></code>
+            <code class="cl"><span class="lp">    </span><span class="lt">HashMap</span><span class="lp">();</span></code>
+            <code class="cl"> </code>
+            <code class="cl"><span class="lc">// Both may hash to same bucket</span></code>
+            <code class="cl"><span class="lp">map.</span><span class="lf">put</span><span class="lp">(</span><span class="ls">"alice"</span><span class="lp">, </span><span class="ln">28</span><span class="lp">); </span><span class="lc">// → slot 3</span></code>
+            <code class="cl"><span class="lp">map.</span><span class="lf">put</span><span class="lp">(</span><span class="ls">"carol"</span><span class="lp">, </span><span class="ln">22</span><span class="lp">); </span><span class="lw">// ⚡ slot 3!</span></code>
+            <code class="cl"> </code>
+            <code class="cl"><span class="lc">// Java 8: chain length ≥ 8?</span></code>
+            <code class="cl"><span class="lc">// list → Red-Black Tree O(n)→O(logn)</span></code>
+            <code class="cl"> </code>
+            <code class="cl"><span class="lc">// Tune initial capacity + load factor</span></code>
+            <code class="cl"><span class="lt">Map</span><span class="lp">&lt;</span><span class="lt">String</span><span class="lp">,</span><span class="lt">Integer</span><span class="lp">&gt; tuned = </span><span class="lk">new</span></code>
+            <code class="cl"><span class="lp">    </span><span class="lt">HashMap</span><span class="lp">(</span><span class="ln">1024</span><span class="lp">, </span><span class="ln">0.6f</span><span class="lp">);</span></code>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 9 — COMPARISON ══ -->
+      <div class="slide" id="s9">
+        <div class="tbar"></div><div class="bline"></div>
+        <div class="stag">hashmap · 09</div><div class="snum">09 / 10</div>
+        <div class="content">
+          <div class="headline">Head to <span class="red">Head</span></div>
+          <div class="eyebrow">chaining vs open addressing — save this slide</div>
+          <div class="cmp-grid">
+            <div class="cmp-card ch">
+              <div class="cc-title">Chaining</div>
+              <div class="cc-sub">linked list per bucket</div>
+              <div class="cc-row"><span class="cc-lbl">avg get</span><span class="cc-val">O(1)</span></div>
+              <div class="cc-row"><span class="cc-lbl">worst get</span><span class="cc-val">O(n)</span></div>
+              <div class="cc-row"><span class="cc-lbl">delete</span><span class="cc-val">Easy ✓</span></div>
+              <div class="cc-row"><span class="cc-lbl">memory</span><span class="cc-val">Ptr overhead</span></div>
+              <div class="cc-row"><span class="cc-lbl">cache</span><span class="cc-val">Poor</span></div>
+              <div class="cc-row"><span class="cc-lbl">used by</span><span class="cc-val">Java, Python</span></div>
+            </div>
+            <div class="cmp-card oa">
+              <div class="cc-title">Open Addr.</div>
+              <div class="cc-sub">probe next empty slot</div>
+              <div class="cc-row"><span class="cc-lbl">avg get</span><span class="cc-val">O(1)</span></div>
+              <div class="cc-row"><span class="cc-lbl">worst get</span><span class="cc-val">O(n)</span></div>
+              <div class="cc-row"><span class="cc-lbl">delete</span><span class="cc-val">Complex</span></div>
+              <div class="cc-row"><span class="cc-lbl">memory</span><span class="cc-val">None</span></div>
+              <div class="cc-row"><span class="cc-lbl">cache</span><span class="cc-val">Excellent</span></div>
+              <div class="cc-row"><span class="cc-lbl">used by</span><span class="cc-val">C++, Go, Redis</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 10 — CTA ══ -->
+      <div class="slide" id="s10">
+        <div class="tbar"></div><div class="bline"></div>
+        <div class="stag">hashmap · 10</div><div class="snum">10 / 10</div>
+        <div class="cta-inner">
+          <div class="cta-eye">// now you know</div>
+          <div class="cta-title">
+            HashMap is O(1).<br>
+            <span class="r">Collisions make it O(n).</span><br>
+            Now you know why.
+          </div>
+          <div class="cta-body">
+            Every Java interview asks about this.<br>
+            Every senior dev role tests this.<br>
+            <span class="hi">Now you can explain it from first principles.</span>
+          </div>
+          <div class="cta-btns">
+            <div class="cb-btn p">💾 Save this</div>
+            <div class="cb-btn s">💬 Drop your answer</div>
+            <div class="cb-btn s">🔁 Share with a dev</div>
+          </div>
+          <div class="ht">#programming #coding #java #datastructures #hashmap<br>#algorithms #dsa #codinginterview #techinterview<br>#softwaredeveloper #100daysofcode #computerscience</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="nbtn" id="pb" onclick="go(-1)" disabled>‹</button>
+  <div class="dots" id="dots"></div>
+  <div class="counter" id="ctr">1 / 10</div>
+  <button class="nbtn" id="nb" onclick="go(1)">›</button>
+</div>
+
+<script>
+const TOTAL = 10;
+let cur = 0;
+const track = document.getElementById('track');
+const dotsEl = document.getElementById('dots');
+const ctr = document.getElementById('ctr');
+
+for (let i = 0; i < TOTAL; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => goTo(i);
+  dotsEl.appendChild(d);
+}
+
+function goTo(idx) {
+  idx = Math.max(0, Math.min(TOTAL - 1, idx));
+  cur = idx;
+  track.style.transform = `translateX(-${idx * 540}px)`;
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  ctr.textContent = `${idx + 1} / ${TOTAL}`;
+  document.getElementById('pb').disabled = idx === 0;
+  document.getElementById('nb').disabled = idx === TOTAL - 1;
+}
+
+function go(d) { goTo(cur + d); }
+
+const tw = document.getElementById('tw');
+let sx = 0, drag = false, dd = 0;
+
+tw.addEventListener('mousedown', e => { drag = true; sx = e.clientX; });
+tw.addEventListener('mousemove', e => {
+  if (!drag) return;
+  dd = e.clientX - sx;
+  track.style.transition = 'none';
+  track.style.transform = `translateX(${-cur * 540 + dd}px)`;
+});
+tw.addEventListener('mouseup', () => {
+  if (!drag) return; drag = false;
+  track.style.transition = '';
+  if (dd < -60) go(1); else if (dd > 60) go(-1); else goTo(cur);
+  dd = 0;
+});
+tw.addEventListener('mouseleave', () => {
+  if (drag) { drag = false; track.style.transition = ''; goTo(cur); dd = 0; }
+});
+tw.addEventListener('touchstart', e => { sx = e.touches[0].clientX; });
+tw.addEventListener('touchend', e => {
+  const d = e.changedTouches[0].clientX - sx;
+  if (d < -50) go(1); else if (d > 50) go(-1);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') go(1);
+  if (e.key === 'ArrowLeft')  go(-1);
+});
+</script>
+</body>
+</html>

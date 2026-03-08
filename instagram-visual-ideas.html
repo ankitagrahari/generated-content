@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram Visual Ideas — CS Explainers</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #f5f2ec;
+  --ink: #1a1612;
+  --paper: #fffdf8;
+  --rule: #d4cfc6;
+  --red: #e8341c;
+  --blue: #1a4ed8;
+  --green: #14803c;
+  --gold: #c9860a;
+  --purple: #6d28d9;
+  --teal: #0d7377;
+  --orange: #ea580c;
+}
+
+body {
+  background: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  padding: 48px 24px 80px;
+}
+
+/* Subtle paper texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' fill='%23c8c4bc' opacity='0.3'/%3E%3C/rect%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Header */
+.masthead {
+  border-top: 4px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  padding: 18px 0 16px;
+  margin-bottom: 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.masthead-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(32px, 6vw, 60px);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.masthead-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #888;
+  text-align: right;
+  line-height: 1.5;
+}
+
+/* Section divider */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 56px 0 28px;
+}
+
+.section-head h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 3px;
+  white-space: nowrap;
+}
+
+.section-head .rule {
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+/* Card grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* Each idea card — Instagram-post-sized preview (1:1) */
+.idea-card {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+}
+
+.idea-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 8px 8px 0 var(--ink);
+}
+
+/* The "preview" pane — the actual visual */
+.preview {
+  width: 100%;
+  aspect-ratio: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card metadata */
+.card-meta {
+  padding: 16px 18px 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.card-topic {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+.card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  line-height: 1.1;
+}
+
+.card-desc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #666;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  color: #777;
+}
+
+
+/* ====================================================
+   PREVIEW DESIGNS — each one is a unique visual
+   ==================================================== */
+
+/* 1. Hash Map — open addressing collision chains */
+.p-hashmap {
+  background: #0f0f1a;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 28px;
+  flex-direction: column;
+}
+
+.hm-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #fff; letter-spacing: 2px; margin-bottom: 18px; }
+
+.hm-grid {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 4px;
+  width: 100%;
+}
+
+.hm-idx { font-size: 10px; color: #444; text-align: right; padding-right: 8px; display: flex; align-items: center; justify-content: flex-end; }
+
+.hm-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.hm-cell {
+  height: 28px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  flex: 1;
+  border: 1px solid #222;
+  color: #555;
+  background: #161625;
+  transition: all 0.3s;
+  animation: hm-pop 0.5s ease backwards;
+}
+
+@keyframes hm-pop { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+.hm-cell.filled {
+  border-color: transparent;
+  color: #fff;
+}
+
+.hm-cell.c1 { background: #1a2a6c; border-color: #2a4aff; color: #7ba3ff; }
+.hm-cell.c2 { background: #6c1a2a; border-color: #ff2a4a; color: #ff8a9a; }
+.hm-cell.c3 { background: #1a6c2a; border-color: #2aff5a; color: #7affa0; }
+.hm-cell.c4 { background: #6c5a1a; border-color: #ffd42a; color: #ffe07a; }
+.hm-cell.chain { opacity: 0.5; }
+
+.collision-arrow {
+  font-size: 10px;
+  color: #ff6060;
+  animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* 2. Binary Search — divide and conquer */
+.p-binsearch {
+  background: #fafaf7;
+  border-bottom: 1px solid #e0e0d8;
+  flex-direction: column;
+  padding: 28px 24px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.bs-array {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.bs-cell {
+  flex: 1;
+  aspect-ratio: 1;
+  border: 2px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  transition: all 0.4s;
+}
+
+.bs-cell.eliminated { background: #f5f5f5; color: #ccc; border-color: #eee; }
+.bs-cell.mid { background: #1a4ed8; color: #fff; border-color: #1a4ed8; transform: scale(1.1); box-shadow: 0 4px 12px rgba(26,78,216,0.3); }
+.bs-cell.target { background: #14803c; color: #fff; border-color: #14803c; animation: found-pulse 1s ease infinite; }
+.bs-cell.range { background: #e8f0fe; border-color: #93c5fd; }
+
+@keyframes found-pulse { 0%,100%{box-shadow: 0 0 0 0 rgba(20,128,60,0.4)} 50%{box-shadow: 0 0 0 8px rgba(20,128,60,0)} }
+
+.bs-pointers {
+  display: flex;
+  font-size: 10px;
+  gap: 4px;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.bs-ptr { flex: 1; text-align: center; color: #999; }
+.bs-ptr.lo { color: #e8341c; }
+.bs-ptr.hi { color: #6d28d9; }
+.bs-ptr.mid { color: #1a4ed8; font-weight: 700; }
+
+.bs-legend {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  font-size: 10px;
+}
+
+.bs-leg-item { display: flex; align-items: center; gap: 5px; color: #666; }
+.bs-leg-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+/* 3. Quicksort pivot */
+.p-quicksort {
+  background: #1a0a2e;
+  flex-direction: column;
+  padding: 24px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  gap: 10px;
+}
+
+.qs-label { font-size: 10px; color: #7060a0; letter-spacing: 1px; align-self: flex-start; }
+.qs-array { display: flex; gap: 5px; width: 100%; align-items: flex-end; }
+
+.qs-bar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  min-height: 10px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 3px;
+  font-size: 9px;
+  color: transparent;
+  transition: all 0.5s;
+}
+
+.qs-bar.unsorted { background: linear-gradient(180deg, #3d2a6e, #2a1a50); }
+.qs-bar.pivot { background: linear-gradient(180deg, #ff6584, #cc3355); box-shadow: 0 0 16px rgba(255,101,132,0.5); }
+.qs-bar.less { background: linear-gradient(180deg, #43e97b, #1a8040); }
+.qs-bar.greater { background: linear-gradient(180deg, #4facfe, #1a60cc); }
+.qs-bar.sorted { background: linear-gradient(180deg, #667eea, #4a5bd4); opacity: 0.6; }
+
+/* 4. LRU Cache */
+.p-lru {
+  background: #0d1117;
+  flex-direction: column;
+  padding: 24px 20px;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.lru-label { font-size: 10px; color: #58a6ff; letter-spacing: 2px; text-transform: uppercase; align-self: flex-start; }
+
+.lru-track {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: relative;
+}
+
+.lru-head-label, .lru-tail-label {
+  font-size: 9px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.lru-head-label { color: #3fb950; }
+.lru-tail-label { color: #f85149; }
+
+.lru-nodes {
+  display: flex;
+  gap: 0;
+  flex: 1;
+  align-items: center;
+}
+
+.lru-node {
+  padding: 8px 10px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  min-width: 44px;
+  transition: all 0.4s;
+}
+
+.lru-node .key {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+.lru-node .val {
+  font-size: 9px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.lru-node.recent { background: #0d3a1f; border: 1px solid #3fb950; }
+.lru-node.mid { background: #1a2035; border: 1px solid #30363d; }
+.lru-node.evict { background: #2d1318; border: 1px solid #f85149; opacity: 0.7; }
+
+.lru-arrow {
+  color: #444;
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+.lru-node.recent .key { color: #3fb950; }
+.lru-node.evict .key { color: #f85149; }
+
+.lru-ops {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.lru-op {
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  margin: 3px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.lru-op.hit { background: rgba(63,185,80,0.1); color: #3fb950; }
+.lru-op.miss { background: rgba(248,81,73,0.1); color: #f85149; }
+.lru-op.evict-op { background: rgba(248,81,73,0.06); color: #e3b341; }
+
+/* 5. Dijkstra's shortest path */
+.p-dijkstra {
+  background: #fffdf6;
+  padding: 20px;
+  flex-direction: column;
+  font-family: 'JetBrains Mono', monospace;
+  position: relative;
+}
+
+.dij-canvas {
+  width: 100%;
+  flex: 1;
+}
+
+/* 6. Skip List */
+.p-skiplist {
+  background: #0c1220;
+  flex-direction: column;
+  padding: 24px 20px;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.sl-level {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  height: 36px;
+}
+
+.sl-level-label {
+  font-size: 9px;
+  color: #3a5070;
+  width: 24px;
+  text-align: right;
+  padding-right: 6px;
+  flex-shrink: 0;
+}
+
+.sl-lane {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  height: 2px;
+  background: #1a2a3a;
+  position: relative;
+}
+
+.sl-node {
+  width: 36px;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  position: absolute;
+  border: 1px solid;
+  transition: all 0.3s;
+}
+
+.sl-node.normal { background: #0d2035; border-color: #1a4060; color: #4a90d9; }
+.sl-node.express { background: #0d3520; border-color: #1a6030; color: #4ad980; }
+.sl-node.highway { background: #35200d; border-color: #60401a; color: #d9a04a; }
+.sl-node.search { background: #1a0d35; border-color: #4030a0; color: #9080ff; box-shadow: 0 0 12px rgba(144,128,255,0.4); }
+
+/* 7. Consistent Hashing ring */
+.p-chash {
+  background: #0f0f0f;
+  position: relative;
+}
+
+/* 8. B-Tree */
+.p-btree {
+  background: #f8f4ee;
+  flex-direction: column;
+  padding: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  gap: 12px;
+}
+
+.bt-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.bt-node {
+  display: flex;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid;
+}
+
+.bt-key {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-right: 1px solid;
+}
+
+.bt-node.root { border-color: #1a4ed8; }
+.bt-node.root .bt-key { background: #dbeafe; color: #1a4ed8; border-right-color: #93c5fd; }
+.bt-node.level1 { border-color: #6d28d9; }
+.bt-node.level1 .bt-key { background: #ede9fe; color: #6d28d9; border-right-color: #c4b5fd; }
+.bt-node.level2 { border-color: #14803c; }
+.bt-node.level2 .bt-key { background: #d1fae5; color: #14803c; border-right-color: #6ee7b7; }
+
+.bt-edge {
+  width: 2px;
+  background: #ddd;
+  margin: 0 auto;
+}
+
+/* 9. Trie */
+.p-trie {
+  background: #1a1a2e;
+  padding: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  position: relative;
+  flex-direction: column;
+}
+
+/* 10. TCP Handshake */
+.p-tcp {
+  background: #0a0e1a;
+  flex-direction: column;
+  padding: 24px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  gap: 0;
+}
+
+.tcp-entities {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.tcp-entity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.tcp-box {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.tcp-box.client { background: #0d2a4a; border: 1px solid #1a5a9a; color: #5aacff; }
+.tcp-box.server { background: #1a2a0d; border: 1px solid #3a6a1a; color: #7aff4a; }
+
+.tcp-lifeline {
+  width: 2px;
+  height: 200px;
+  background: repeating-linear-gradient(180deg, #333 0, #333 6px, transparent 6px, transparent 12px);
+}
+
+.tcp-messages {
+  position: absolute;
+  left: 50px;
+  right: 50px;
+  top: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tcp-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.tcp-msg.to-server { flex-direction: row; }
+.tcp-msg.to-client { flex-direction: row-reverse; }
+
+.tcp-arrow-line {
+  flex: 1;
+  height: 1px;
+  position: relative;
+}
+
+.tcp-msg.to-server .tcp-arrow-line { background: linear-gradient(90deg, #5aacff, transparent); }
+.tcp-msg.to-server .tcp-arrow-line::after { content: '▶'; position: absolute; right: -4px; top: -7px; color: #5aacff; font-size: 10px; }
+.tcp-msg.to-client .tcp-arrow-line { background: linear-gradient(270deg, #7aff4a, transparent); }
+.tcp-msg.to-client .tcp-arrow-line::after { content: '◀'; position: absolute; left: -4px; top: -7px; color: #7aff4a; font-size: 10px; }
+
+.tcp-label { font-weight: 700; white-space: nowrap; }
+.tcp-msg.to-server .tcp-label { color: #5aacff; }
+.tcp-msg.to-client .tcp-label { color: #7aff4a; }
+
+/* 11. Memory heap vs stack */
+.p-memstack {
+  background: #12100e;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 0;
+}
+
+.mem-col {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  gap: 4px;
+  border-right: 1px solid #2a2520;
+}
+
+.mem-col:last-child { border-right: none; }
+.mem-col-title { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; text-align: center; }
+
+.stack-title { color: #f97316; }
+.heap-title { color: #a855f7; }
+
+.mem-frame {
+  padding: 6px 8px;
+  border-radius: 2px;
+  font-size: 10px;
+  border: 1px solid;
+  text-align: center;
+}
+
+.stack-frame { background: rgba(249,115,22,0.08); border-color: rgba(249,115,22,0.3); color: #fb923c; }
+.stack-frame.active { background: rgba(249,115,22,0.18); border-color: #f97316; color: #fed7aa; }
+.heap-frame { font-size: 9px; padding: 5px 6px; margin: 2px 0; }
+.heap-frame.alloc { background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.3); color: #c084fc; }
+.heap-frame.freed { background: rgba(75,85,99,0.1); border-color: rgba(75,85,99,0.2); color: #6b7280; text-decoration: line-through; }
+.heap-frame.frag { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); color: #f87171; }
+
+/* 12. CAP Theorem triangle */
+.p-cap {
+  background: radial-gradient(circle at 50% 60%, #1a1040, #080510);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 13. Mutex/Deadlock */
+.p-deadlock {
+  background: #0d0d0d;
+  font-family: 'JetBrains Mono', monospace;
+  position: relative;
+}
+
+/* 14. Big O curves */
+.p-bigo {
+  background: #fafaf7;
+  padding: 20px;
+  position: relative;
+}
+
+
+/* Animated elements */
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+@keyframes spin-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes dash { to { stroke-dashoffset: -100; } }
+@keyframes glow { 0%,100%{opacity:0.6} 50%{opacity:1} }
+
+/* Section hero divider */
+.featured-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #999;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.featured-label::before, .featured-label::after {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: #ccc;
+}
+
+.idea-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 72px;
+  color: #eee;
+  position: absolute;
+  bottom: -8px;
+  right: 12px;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Difficulty badge */
+.difficulty {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 2px 7px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.diff-easy { background: #d1fae5; color: #065f46; }
+.diff-medium { background: #fef3c7; color: #92400e; }
+.diff-hard { background: #fee2e2; color: #991b1b; }
+
+.viral-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #bbb;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.viral-score span { color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="masthead">
+    <div class="masthead-title">CS Visual Ideas<br>for Instagram</div>
+    <div class="masthead-sub">
+      14 concepts<br>
+      interactive explainer posts<br>
+      each one buildable as HTML viz
+    </div>
+  </div>
+
+  <!-- ====== SECTION 1: DATA STRUCTURES ====== -->
+  <div class="section-head">
+    <h2>Data Structures</h2>
+    <div class="rule"></div>
+  </div>
+
+  <div class="grid">
+
+    <!-- 1. Hash Map Collision -->
+    <div class="idea-card">
+      <div class="preview p-hashmap">
+        <div class="hm-title">HASH MAP — OPEN ADDRESSING</div>
+        <div class="hm-grid">
+          <div class="hm-idx">0</div><div class="hm-row"><div class="hm-cell filled c1" style="animation-delay:0.1s">alice</div></div>
+          <div class="hm-idx">1</div><div class="hm-row"><div class="hm-cell" style="animation-delay:0.15s">—</div></div>
+          <div class="hm-idx">2</div><div class="hm-row"><div class="hm-cell filled c2" style="animation-delay:0.2s">carol</div></div>
+          <div class="hm-idx">3</div><div class="hm-row"><div class="hm-cell filled c3 chain" style="animation-delay:0.25s">bob <span class="collision-arrow">← collision!</span></div></div>
+          <div class="hm-idx">4</div><div class="hm-row"><div class="hm-cell" style="animation-delay:0.3s">—</div></div>
+          <div class="hm-idx">5</div><div class="hm-row"><div class="hm-cell filled c4" style="animation-delay:0.35s">dave</div></div>
+          <div class="hm-idx">6</div><div class="hm-row"><div class="hm-cell" style="animation-delay:0.4s">—</div></div>
+          <div class="hm-idx">7</div><div class="hm-row"><div class="hm-cell filled c1 chain" style="animation-delay:0.45s">eve <span class="collision-arrow">← probe +4</span></div></div>
+        </div>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Data Structures · Hashing</div>
+        <div class="difficulty diff-medium">Medium</div>
+        <div class="card-title">Hash Map: How Collisions Are Resolved</div>
+        <div class="card-desc">Animate keys being inserted, collisions lighting up in red, and probing sequences revealing the next open slot. Show chaining vs open addressing side-by-side.</div>
+        <div class="viral-score">🔥 Viral potential: <span>9/10</span> — every dev has wondered this</div>
+        <div class="card-tags"><span class="tag">#hashmap</span><span class="tag">#collision</span><span class="tag">#dsa</span></div>
+      </div>
+    </div>
+
+    <!-- 2. Binary Search -->
+    <div class="idea-card">
+      <div class="preview p-binsearch">
+        <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:#1a4ed8;margin-bottom:12px;align-self:flex-start">BINARY SEARCH — TARGET: 71</div>
+        <div class="bs-array" style="margin-bottom:4px">
+          <div class="bs-cell eliminated">3</div>
+          <div class="bs-cell eliminated">9</div>
+          <div class="bs-cell eliminated">17</div>
+          <div class="bs-cell eliminated">24</div>
+          <div class="bs-cell eliminated">38</div>
+          <div class="bs-cell mid">52</div>
+          <div class="bs-cell range">64</div>
+          <div class="bs-cell target">71</div>
+          <div class="bs-cell range">85</div>
+          <div class="bs-cell range">99</div>
+        </div>
+        <div class="bs-pointers">
+          <div class="bs-ptr"></div><div class="bs-ptr"></div><div class="bs-ptr"></div>
+          <div class="bs-ptr"></div><div class="bs-ptr"></div>
+          <div class="bs-ptr mid">MID</div>
+          <div class="bs-ptr lo">LO</div>
+          <div class="bs-ptr mid" style="color:#14803c">★</div>
+          <div class="bs-ptr"></div>
+          <div class="bs-ptr hi">HI</div>
+        </div>
+        <div style="font-size:11px;font-family:'JetBrains Mono';color:#666;margin-top:10px">Eliminated 5 elements instantly. O(log n) = 3 steps for 10 elements.</div>
+        <div class="bs-legend">
+          <div class="bs-leg-item"><div class="bs-leg-dot" style="background:#dbeafe;border:1px solid #93c5fd"></div>search range</div>
+          <div class="bs-leg-item"><div class="bs-leg-dot" style="background:#1a4ed8"></div>mid pointer</div>
+          <div class="bs-leg-item"><div class="bs-leg-dot" style="background:#14803c"></div>found!</div>
+          <div class="bs-leg-item"><div class="bs-leg-dot" style="background:#f5f5f5;border:1px solid #eee"></div>eliminated</div>
+        </div>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Algorithms · Search</div>
+        <div class="difficulty diff-easy">Easy</div>
+        <div class="card-title">Binary Search — Half the Problem Every Step</div>
+        <div class="card-desc">Animate the array greying out eliminated halves, with LO/MID/HI pointers sliding. Show the dramatic difference between O(n) linear scan and O(log n) binary. Add a counter showing "comparisons used."</div>
+        <div class="viral-score">🔥 Viral potential: <span>10/10</span> — most relatable interview topic</div>
+        <div class="card-tags"><span class="tag">#binarysearch</span><span class="tag">#algorithms</span><span class="tag">#ologn</span></div>
+      </div>
+    </div>
+
+    <!-- 3. Quicksort pivot -->
+    <div class="idea-card">
+      <div class="preview p-quicksort">
+        <div class="qs-label">BEFORE PARTITION</div>
+        <div class="qs-array">
+          <div class="qs-bar less" style="height:40%;animation-delay:0.1s">3</div>
+          <div class="qs-bar less" style="height:55%;animation-delay:0.15s">7</div>
+          <div class="qs-bar pivot" style="height:70%;animation-delay:0.2s;font-size:9px;color:#fff">44<br>↑PIVOT</div>
+          <div class="qs-bar greater" style="height:85%;animation-delay:0.25s">61</div>
+          <div class="qs-bar less" style="height:30%;animation-delay:0.3s">18</div>
+          <div class="qs-bar greater" style="height:95%;animation-delay:0.35s">89</div>
+          <div class="qs-bar less" style="height:20%;animation-delay:0.4s">9</div>
+          <div class="qs-bar greater" style="height:75%;animation-delay:0.45s">52</div>
+          <div class="qs-bar less" style="height:45%;animation-delay:0.5s">27</div>
+          <div class="qs-bar greater" style="height:60%;animation-delay:0.55s">47</div>
+        </div>
+        <div style="display:flex;gap:10px;font-size:10px;margin-top:4px">
+          <span style="color:#43e97b">■ less than pivot</span>
+          <span style="color:#ff6584">■ pivot</span>
+          <span style="color:#4facfe">■ greater than pivot</span>
+        </div>
+        <div class="qs-label" style="margin-top:8px">AFTER PARTITION — pivot is in final position</div>
+        <div class="qs-array" style="height:28%">
+          <div class="qs-bar less" style="height:100%">3</div>
+          <div class="qs-bar less" style="height:100%">7</div>
+          <div class="qs-bar less" style="height:100%">9</div>
+          <div class="qs-bar less" style="height:100%">18</div>
+          <div class="qs-bar less" style="height:100%">27</div>
+          <div class="qs-bar pivot" style="height:100%">44</div>
+          <div class="qs-bar greater" style="height:100%">47</div>
+          <div class="qs-bar greater" style="height:100%">52</div>
+          <div class="qs-bar greater" style="height:100%">61</div>
+          <div class="qs-bar greater" style="height:100%">89</div>
+        </div>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Algorithms · Sorting</div>
+        <div class="difficulty diff-medium">Medium</div>
+        <div class="card-title">Quicksort — The Pivot That Splits the World</div>
+        <div class="card-desc">Animate bars being recoloured green (less) or blue (greater) as the partition scans left→right. Show the pivot drop into its final resting place. Then recurse on each half. Best sorting visual on the internet.</div>
+        <div class="viral-score">🔥 Viral potential: <span>9/10</span> — beautiful bar chart motion</div>
+        <div class="card-tags"><span class="tag">#quicksort</span><span class="tag">#sorting</span><span class="tag">#pivot</span></div>
+      </div>
+    </div>
+
+    <!-- 4. LRU Cache -->
+    <div class="idea-card">
+      <div class="preview p-lru" style="position:relative">
+        <div class="lru-label">LRU CACHE — CAPACITY: 4</div>
+        <div class="lru-track">
+          <div class="lru-head-label">MRU ▶</div>
+          <div class="lru-nodes">
+            <div class="lru-node recent"><div class="key">E</div><div class="val">just used</div></div>
+            <div class="lru-arrow">⇄</div>
+            <div class="lru-node mid"><div class="key">B</div><div class="val">val=42</div></div>
+            <div class="lru-arrow">⇄</div>
+            <div class="lru-node mid"><div class="key">C</div><div class="val">val=7</div></div>
+            <div class="lru-arrow">⇄</div>
+            <div class="lru-node evict"><div class="key">A</div><div class="val">evict next</div></div>
+          </div>
+          <div class="lru-tail-label">◀ LRU</div>
+        </div>
+        <div class="lru-ops">
+          <div class="lru-op hit">GET(B) → hit! Move B to front</div>
+          <div class="lru-op miss">GET(Z) → MISS. Load from DB</div>
+          <div class="lru-op evict-op">PUT(Z) → cache full, evict A (LRU)</div>
+          <div class="lru-op hit">GET(E) → hit! Already at front</div>
+        </div>
+        <div style="font-size:9px;color:#444;font-family:'JetBrains Mono';margin-top:6px">Doubly-linked list + hash map = O(1) get & put</div>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">System Design · Caching</div>
+        <div class="difficulty diff-hard">Hard</div>
+        <div class="card-title">LRU Cache — How LinkedIn's Feed Stays Fast</div>
+        <div class="card-desc">Animate nodes sliding to the front on access and falling off the tail on eviction. Show the O(1) magic of combining a hash map with a doubly-linked list. This is a top-5 interview question at FAANG.</div>
+        <div class="viral-score">🔥 Viral potential: <span>10/10</span> — #1 system design interview topic</div>
+        <div class="card-tags"><span class="tag">#lrucache</span><span class="tag">#systemdesign</span><span class="tag">#caching</span></div>
+      </div>
+    </div>
+
+    <!-- 5. Skip List -->
+    <div class="idea-card">
+      <div class="preview p-skiplist">
+        <div style="font-family:'Bebas Neue';font-size:18px;color:#fff;letter-spacing:2px;margin-bottom:6px">SKIP LIST — O(log n) AVERAGE SEARCH</div>
+        <div class="sl-level">
+          <div class="sl-level-label">L3</div>
+          <div class="sl-lane" style="flex:1;position:relative">
+            <div class="sl-node highway" style="left:0px">1</div>
+            <div class="sl-node highway search" style="left:120px">37</div>
+            <div class="sl-node highway" style="left:240px">99</div>
+          </div>
+        </div>
+        <div class="sl-level">
+          <div class="sl-level-label">L2</div>
+          <div class="sl-lane" style="flex:1;position:relative">
+            <div class="sl-node express" style="left:0px">1</div>
+            <div class="sl-node express" style="left:80px">17</div>
+            <div class="sl-node express search" style="left:160px">37</div>
+            <div class="sl-node express" style="left:240px">55</div>
+          </div>
+        </div>
+        <div class="sl-level">
+          <div class="sl-level-label">L1</div>
+          <div class="sl-lane" style="flex:1;position:relative">
+            <div class="sl-node normal" style="left:0">1</div>
+            <div class="sl-node normal" style="left:40">9</div>
+            <div class="sl-node normal" style="left:80">17</div>
+            <div class="sl-node normal" style="left:120">24</div>
+            <div class="sl-node normal search" style="left:160">37</div>
+            <div class="sl-node normal" style="left:200">44</div>
+            <div class="sl-node normal" style="left:240">55</div>
+          </div>
+        </div>
+        <div style="font-size:9px;color:#3a5070;font-family:'JetBrains Mono';margin-top:12px">Search path: L3→37 ✓ (3 comparisons instead of 7)</div>
+        <div style="display:flex;gap:12px;margin-top:8px;font-size:9px;font-family:'JetBrains Mono'">
+          <span style="color:#4ad980">■ express lane</span>
+          <span style="color:#d9a04a">■ highway</span>
+          <span style="color:#9080ff">■ search path</span>
+        </div>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Data Structures · Probabilistic</div>
+        <div class="difficulty diff-hard">Hard</div>
+        <div class="card-title">Skip List — The Expressway Through Your Data</div>
+        <div class="card-desc">The subway metaphor works perfectly — express lanes skip over nodes just like express trains skip stations. Animate the search path jumping between levels, show comparisons saved vs a linked list scan.</div>
+        <div class="viral-score">🔥 Viral potential: <span>8/10</span> — rare topic, instant credibility</div>
+        <div class="card-tags"><span class="tag">#skiplist</span><span class="tag">#redis</span><span class="tag">#probabilistic</span></div>
+      </div>
+    </div>
+
+    <!-- 6. B-Tree -->
+    <div class="idea-card">
+      <div class="preview p-btree">
+        <div style="font-family:'Bebas Neue';font-size:18px;letter-spacing:2px;color:#1a4ed8;margin-bottom:8px;text-align:center">B-TREE — HOW DATABASES INDEX DATA</div>
+        <div class="bt-row">
+          <div class="bt-node root">
+            <div class="bt-key">30</div><div class="bt-key">70</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-around;gap:2px">
+          <div style="width:1px;height:20px;background:#93c5fd;margin:0 60px 0 20px"></div>
+          <div style="width:1px;height:20px;background:#93c5fd;margin:0 20px 0 60px"></div>
+        </div>
+        <div class="bt-row">
+          <div class="bt-node level1"><div class="bt-key">10</div><div class="bt-key">20</div></div>
+          <div style="width:12px"></div>
+          <div class="bt-node level1"><div class="bt-key">40</div><div class="bt-key">55</div></div>
+          <div style="width:12px"></div>
+          <div class="bt-node level1"><div class="bt-key">80</div><div class="bt-key">90</div></div>
+        </div>
+        <div style="height:16px"></div>
+        <div class="bt-row" style="flex-wrap:wrap;gap:4px;justify-content:space-between">
+          <div class="bt-node level2"><div class="bt-key">5</div><div class="bt-key">8</div></div>
+          <div class="bt-node level2"><div class="bt-key">12</div><div class="bt-key">15</div></div>
+          <div class="bt-node level2" style="border-color:#e8341c"><div class="bt-key" style="background:#fee2e2;color:#e8341c;border-right-color:#fca5a5">43</div><div class="bt-key" style="background:#fee2e2;color:#e8341c;border-right-color:#fca5a5">48</div></div>
+          <div class="bt-node level2"><div class="bt-key">72</div><div class="bt-key">75</div></div>
+        </div>
+        <div style="font-size:9px;font-family:'JetBrains Mono';color:#888;margin-top:8px;text-align:center">Searching 43: root→right subtree→leaf. Always O(log n). Disk-friendly!</div>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Data Structures · Databases</div>
+        <div class="difficulty diff-hard">Hard</div>
+        <div class="card-title">B-Tree — Why MySQL Is Blazing Fast</div>
+        <div class="card-desc">Show a search path lighting up node by node from root to leaf. Then animate an insertion causing a node split — the most dramatic moment in B-tree life. Explain why this structure minimises disk I/O.</div>
+        <div class="viral-score">🔥 Viral potential: <span>9/10</span> — "I finally get indexes" comments guaranteed</div>
+        <div class="card-tags"><span class="tag">#btree</span><span class="tag">#mysql</span><span class="tag">#indexes</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ====== SECTION 2: SYSTEMS & NETWORKING ====== -->
+  <div class="section-head">
+    <h2>Systems & Networking</h2>
+    <div class="rule"></div>
+  </div>
+
+  <div class="grid">
+
+    <!-- 7. TCP Handshake -->
+    <div class="idea-card">
+      <div class="preview p-tcp" style="position:relative">
+        <div class="tcp-entities">
+          <div class="tcp-entity">
+            <div class="tcp-box client">CLIENT</div>
+            <div class="tcp-lifeline"></div>
+          </div>
+          <div style="flex:1"></div>
+          <div class="tcp-entity">
+            <div class="tcp-box server">SERVER</div>
+            <div class="tcp-lifeline"></div>
+          </div>
+        </div>
+        <div class="tcp-messages">
+          <div class="tcp-msg to-server">
+            <div class="tcp-label">SYN</div>
+            <div class="tcp-arrow-line"></div>
+            <div style="font-size:9px;color:#5aacff;font-family:'JetBrains Mono';white-space:nowrap">seq=100</div>
+          </div>
+          <div class="tcp-msg to-client">
+            <div class="tcp-label">SYN-ACK</div>
+            <div class="tcp-arrow-line"></div>
+            <div style="font-size:9px;color:#7aff4a;font-family:'JetBrains Mono';white-space:nowrap">seq=200,ack=101</div>
+          </div>
+          <div class="tcp-msg to-server">
+            <div class="tcp-label">ACK</div>
+            <div class="tcp-arrow-line"></div>
+            <div style="font-size:9px;color:#5aacff;font-family:'JetBrains Mono';white-space:nowrap">ack=201</div>
+          </div>
+          <div class="tcp-msg to-server" style="opacity:0.5">
+            <div class="tcp-label" style="color:#aaa">DATA</div>
+            <div class="tcp-arrow-line" style="background:linear-gradient(90deg,#555,transparent)"></div>
+            <div style="font-size:9px;color:#555;font-family:'JetBrains Mono'">connection established!</div>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:14px;left:20px;right:20px;text-align:center;font-family:'JetBrains Mono';font-size:9px;color:#334">
+          Every HTTP request starts here. Every. Single. One.
+        </div>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Networking · Protocols</div>
+        <div class="difficulty diff-easy">Easy</div>
+        <div class="card-title">TCP 3-Way Handshake — Before Your Browser Loads Anything</div>
+        <div class="card-desc">Animate the SYN/SYN-ACK/ACK packets flying between client and server with sequence numbers. Add a "latency cost" annotation showing why mobile connections feel slow (each round trip = ~100ms). Contrast with QUIC/HTTP3.</div>
+        <div class="viral-score">🔥 Viral potential: <span>9/10</span> — relatable to every web dev</div>
+        <div class="card-tags"><span class="tag">#tcp</span><span class="tag">#networking</span><span class="tag">#http</span></div>
+      </div>
+    </div>
+
+    <!-- 8. Memory Stack vs Heap -->
+    <div class="idea-card">
+      <div class="preview p-memstack">
+        <div class="mem-col">
+          <div class="mem-col-title stack-title">Stack</div>
+          <div class="mem-frame stack-frame active">main() frame<br><span style="font-size:8px">x=5, y=12</span></div>
+          <div class="mem-frame stack-frame active">foo() frame<br><span style="font-size:8px">ptr=0x4f2a</span></div>
+          <div class="mem-frame stack-frame active" style="border-color:#f97316">bar() ← SP<br><span style="font-size:8px">result=null</span></div>
+          <div class="mem-frame" style="background:rgba(249,115,22,0.03);border:1px dashed rgba(249,115,22,0.1);color:#3a2510;font-size:9px;text-align:center;padding:10px 4px">↑ grows down<br>auto freed<br>LIFO order</div>
+          <div style="margin-top:auto;font-size:9px;color:#555;font-family:'JetBrains Mono';text-align:center">O(1) alloc/free<br>size known at compile</div>
+        </div>
+        <div class="mem-col">
+          <div class="mem-col-title heap-title">Heap</div>
+          <div class="mem-frame heap-frame alloc">0x4f2a: Node{7}</div>
+          <div class="mem-frame heap-frame freed">0x5a10: [freed]</div>
+          <div class="mem-frame heap-frame alloc">0x5a80: List[100]</div>
+          <div class="mem-frame heap-frame frag">0x6200: [fragmented]</div>
+          <div class="mem-frame heap-frame alloc">0x7f10: String</div>
+          <div class="mem-frame heap-frame freed">0x8a00: [freed]</div>
+          <div class="mem-frame heap-frame alloc" style="border-color:#a855f7">0x9100: new Obj()</div>
+          <div style="margin-top:auto;font-size:9px;color:#555;font-family:'JetBrains Mono';text-align:center">dynamic size<br>manual/GC managed</div>
+        </div>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Memory · Systems</div>
+        <div class="difficulty diff-medium">Medium</div>
+        <div class="card-title">Stack vs Heap — Where Your Variables Actually Live</div>
+        <div class="card-desc">Side-by-side animation: stack frames pushing and popping like a spring, heap blocks appearing, being freed, leaving gaps (fragmentation). Show a stack overflow crashing with a dramatic red flash. Pure gold for systems interviews.</div>
+        <div class="viral-score">🔥 Viral potential: <span>8/10</span> — "I never understood this until now"</div>
+        <div class="card-tags"><span class="tag">#memory</span><span class="tag">#stack</span><span class="tag">#heap</span></div>
+      </div>
+    </div>
+
+    <!-- 9. Consistent Hashing -->
+    <div class="idea-card">
+      <div class="preview p-chash">
+        <svg viewBox="0 0 300 300" width="100%" height="100%">
+          <!-- Ring -->
+          <circle cx="150" cy="150" r="110" fill="none" stroke="#1a1a2e" stroke-width="20"/>
+          <circle cx="150" cy="150" r="110" fill="none" stroke="url(#ringGrad)" stroke-width="3" opacity="0.6"
+            stroke-dasharray="8 4"/>
+
+          <defs>
+            <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#4facfe"/>
+              <stop offset="50%" stop-color="#a78bfa"/>
+              <stop offset="100%" stop-color="#f97316"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Server nodes on ring -->
+          <g transform="translate(150,40)">
+            <circle r="18" fill="#0d2a4a" stroke="#4facfe" stroke-width="2"/>
+            <text text-anchor="middle" dy="4" fill="#4facfe" font-size="9" font-family="JetBrains Mono" font-weight="bold">S1</text>
+          </g>
+          <g transform="translate(260,150)">
+            <circle r="18" fill="#1a0d35" stroke="#a78bfa" stroke-width="2"/>
+            <text text-anchor="middle" dy="4" fill="#a78bfa" font-size="9" font-family="JetBrains Mono" font-weight="bold">S2</text>
+          </g>
+          <g transform="translate(185,248)">
+            <circle r="18" fill="#2d1a0d" stroke="#f97316" stroke-width="2"/>
+            <text text-anchor="middle" dy="4" fill="#f97316" font-size="9" font-family="JetBrains Mono" font-weight="bold">S3</text>
+          </g>
+          <g transform="translate(40,150)">
+            <circle r="18" fill="#0d2d1a" stroke="#3fb950" stroke-width="2"/>
+            <text text-anchor="middle" dy="4" fill="#3fb950" font-size="9" font-family="JetBrains Mono" font-weight="bold">S4</text>
+          </g>
+
+          <!-- Keys on ring -->
+          <circle cx="200" cy="68" r="8" fill="#e8341c" opacity="0.9"/>
+          <text x="212" y="72" fill="#ff8080" font-size="8" font-family="JetBrains Mono">k1→S2</text>
+
+          <circle cx="240" cy="210" r="8" fill="#ffd42a" opacity="0.9"/>
+          <text x="248" y="214" fill="#ffe07a" font-size="8" font-family="JetBrains Mono">k2→S3</text>
+
+          <circle cx="90" cy="220" r="8" fill="#43e97b" opacity="0.9"/>
+          <text x="28" y="224" fill="#a0ffcc" font-size="8" font-family="JetBrains Mono">k3→S4</text>
+
+          <!-- Arrow from key to server (clockwise) -->
+          <path d="M200,68 Q230,80 255,145" fill="none" stroke="#4facfe" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+
+          <!-- Center label -->
+          <text x="150" y="144" text-anchor="middle" fill="#555" font-size="9" font-family="JetBrains Mono">consistent</text>
+          <text x="150" y="158" text-anchor="middle" fill="#555" font-size="9" font-family="JetBrains Mono">hash ring</text>
+
+          <!-- "New server added" callout -->
+          <circle cx="100" cy="52" r="14" fill="#1a0d35" stroke="#ff6584" stroke-width="1.5" stroke-dasharray="3 2"/>
+          <text x="100" y="56" text-anchor="middle" fill="#ff6584" font-size="8" font-family="JetBrains Mono" font-weight="bold">S5?</text>
+          <text x="100" y="36" text-anchor="middle" fill="#ff6584" font-size="8" font-family="JetBrains Mono">adding…</text>
+        </svg>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Distributed Systems</div>
+        <div class="difficulty diff-hard">Hard</div>
+        <div class="card-title">Consistent Hashing — How DynamoDB Scales Infinitely</div>
+        <div class="card-desc">Animate keys being placed on the ring, then a server being added/removed — show how only the adjacent keys migrate, not the entire dataset. The "aha" moment when people realize why this beats modulo hashing.</div>
+        <div class="viral-score">🔥 Viral potential: <span>10/10</span> — Cassandra, DynamoDB, Memcached all use this</div>
+        <div class="card-tags"><span class="tag">#consistenthashing</span><span class="tag">#distributed</span><span class="tag">#dynamodb</span></div>
+      </div>
+    </div>
+
+    <!-- 10. Deadlock -->
+    <div class="idea-card">
+      <div class="preview p-deadlock">
+        <svg viewBox="0 0 300 300" width="100%" height="100%">
+          <defs>
+            <marker id="arrowR" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#f85149"/>
+            </marker>
+            <marker id="arrowB" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#58a6ff"/>
+            </marker>
+          </defs>
+
+          <!-- Processes -->
+          <rect x="30" y="120" width="80" height="60" rx="6" fill="#0d1117" stroke="#58a6ff" stroke-width="2"/>
+          <text x="70" y="145" text-anchor="middle" fill="#58a6ff" font-size="11" font-family="JetBrains Mono" font-weight="bold">Thread A</text>
+          <text x="70" y="163" text-anchor="middle" fill="#3a5070" font-size="9" font-family="JetBrains Mono">BLOCKED</text>
+          <circle cx="70" cy="155" r="0" fill="#f85149" opacity="0">
+            <animate attributeName="r" values="0;25;0" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+            <animate attributeName="opacity" values="0.3;0;0" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+          </circle>
+
+          <rect x="190" y="120" width="80" height="60" rx="6" fill="#0d1117" stroke="#3fb950" stroke-width="2"/>
+          <text x="230" y="145" text-anchor="middle" fill="#3fb950" font-size="11" font-family="JetBrains Mono" font-weight="bold">Thread B</text>
+          <text x="230" y="163" text-anchor="middle" fill="#2a5030" font-size="9" font-family="JetBrains Mono">BLOCKED</text>
+
+          <!-- Resources -->
+          <rect x="105" y="30" width="90" height="50" rx="4" fill="#1a0d0d" stroke="#f85149" stroke-width="1.5"/>
+          <text x="150" y="51" text-anchor="middle" fill="#f85149" font-size="10" font-family="JetBrains Mono" font-weight="bold">MUTEX-1</text>
+          <text x="150" y="67" text-anchor="middle" fill="#6a2020" font-size="9" font-family="JetBrains Mono">held by A</text>
+
+          <rect x="105" y="220" width="90" height="50" rx="4" fill="#0d1a0d" stroke="#3fb950" stroke-width="1.5"/>
+          <text x="150" y="241" text-anchor="middle" fill="#3fb950" font-size="10" font-family="JetBrains Mono" font-weight="bold">MUTEX-2</text>
+          <text x="150" y="257" text-anchor="middle" fill="#1a4a1a" font-size="9" font-family="JetBrains Mono">held by B</text>
+
+          <!-- Arrows: A holds mutex-1, wants mutex-2 -->
+          <path d="M70,120 Q90,55 105,55" fill="none" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrowB)" stroke-dasharray="4 2">
+            <animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" repeatCount="indefinite"/>
+          </path>
+          <text x="42" y="88" fill="#2a4060" font-size="8" font-family="JetBrains Mono">holds</text>
+
+          <path d="M70,180 Q90,245 105,245" fill="none" stroke="#f85149" stroke-width="1.5" marker-end="url(#arrowR)" stroke-dasharray="4 2">
+            <animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" repeatCount="indefinite"/>
+          </path>
+          <text x="38" y="218" fill="#6a2020" font-size="8" font-family="JetBrains Mono">WANTS</text>
+
+          <!-- B holds mutex-2, wants mutex-1 -->
+          <path d="M230,120 Q210,55 195,55" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrowB)" stroke-dasharray="4 2">
+            <animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" repeatCount="indefinite"/>
+          </path>
+          <text x="208" y="88" fill="#1a4a1a" font-size="8" font-family="JetBrains Mono">WANTS</text>
+
+          <path d="M230,180 Q210,245 195,245" fill="none" stroke="#f85149" stroke-width="1.5" marker-end="url(#arrowR)" stroke-dasharray="4 2">
+            <animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" repeatCount="indefinite"/>
+          </path>
+          <text x="205" y="218" fill="#6a2020" font-size="8" font-family="JetBrains Mono">holds</text>
+
+          <!-- Deadlock label -->
+          <text x="150" y="155" text-anchor="middle" fill="#f85149" font-size="14" font-family="Bebas Neue" letter-spacing="2">DEADLOCK</text>
+          <text x="150" y="170" text-anchor="middle" fill="#4a1010" font-size="8" font-family="JetBrains Mono">circular wait — forever</text>
+        </svg>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Concurrency · Operating Systems</div>
+        <div class="difficulty diff-hard">Hard</div>
+        <div class="card-title">Deadlock — When Two Threads Wait Forever</div>
+        <div class="card-desc">Animate two threads each holding one lock and waiting for the other — the circular dependency visualised as arrows chasing each other in an endless loop. Show the 4 Coffman conditions. Add a "resolution" slide showing lock ordering or timeout.</div>
+        <div class="viral-score">🔥 Viral potential: <span>9/10</span> — OS interview classic, visually dramatic</div>
+        <div class="card-tags"><span class="tag">#deadlock</span><span class="tag">#concurrency</span><span class="tag">#mutex</span></div>
+      </div>
+    </div>
+
+    <!-- 11. Big O Visual -->
+    <div class="idea-card">
+      <div class="preview p-bigo">
+        <svg viewBox="0 0 300 280" width="100%" height="100%">
+          <defs>
+            <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#333"/>
+            </marker>
+          </defs>
+          <!-- Axes -->
+          <line x1="40" y1="240" x2="280" y2="240" stroke="#333" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <line x1="40" y1="240" x2="40" y2="20" stroke="#333" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <text x="285" y="244" font-size="10" font-family="JetBrains Mono" fill="#666">n</text>
+          <text x="28" y="18" font-size="10" font-family="JetBrains Mono" fill="#666">t</text>
+          <text x="46" y="255" font-size="9" font-family="JetBrains Mono" fill="#ccc">0</text>
+
+          <!-- O(1) -->
+          <line x1="40" y1="230" x2="270" y2="230" stroke="#14803c" stroke-width="2.5"/>
+          <text x="272" y="234" font-size="9" font-family="JetBrains Mono" fill="#14803c">O(1)</text>
+
+          <!-- O(log n) -->
+          <path d="M40,220 Q80,200 120,192 Q180,185 270,180" fill="none" stroke="#1a4ed8" stroke-width="2.5"/>
+          <text x="272" y="184" font-size="9" font-family="JetBrains Mono" fill="#1a4ed8">O(log n)</text>
+
+          <!-- O(n) -->
+          <line x1="40" y1="240" x2="270" y2="100" stroke="#f59e0b" stroke-width="2.5"/>
+          <text x="272" y="104" font-size="9" font-family="JetBrains Mono" fill="#f59e0b">O(n)</text>
+
+          <!-- O(n log n) -->
+          <path d="M40,240 Q100,200 160,150 Q220,100 270,75" fill="none" stroke="#f97316" stroke-width="2.5"/>
+          <text x="248" y="69" font-size="9" font-family="JetBrains Mono" fill="#f97316">O(n log n)</text>
+
+          <!-- O(n²) -->
+          <path d="M40,240 Q80,220 110,185 Q150,130 190,60" fill="none" stroke="#e8341c" stroke-width="2.5"/>
+          <text x="192" y="54" font-size="9" font-family="JetBrains Mono" fill="#e8341c">O(n²)</text>
+
+          <!-- O(2^n) -->
+          <path d="M40,240 Q55,235 70,220 Q85,190 95,140 Q100,110 105,60" fill="none" stroke="#9d174d" stroke-width="2.5"/>
+          <text x="107" y="54" font-size="9" font-family="JetBrains Mono" fill="#9d174d">O(2ⁿ)</text>
+
+          <!-- Zones -->
+          <text x="44" y="172" font-size="8" font-family="JetBrains Mono" fill="#14803c" opacity="0.5">excellent</text>
+          <text x="44" y="130" font-size="8" font-family="JetBrains Mono" fill="#f59e0b" opacity="0.5">good</text>
+          <text x="44" y="95" font-size="8" font-family="JetBrains Mono" fill="#e8341c" opacity="0.5">bad</text>
+          <text x="44" y="65" font-size="8" font-family="JetBrains Mono" fill="#9d174d" opacity="0.5">terrible</text>
+
+          <text x="150" y="16" text-anchor="middle" font-size="13" font-family="Bebas Neue" fill="#1a1612" letter-spacing="2">BIG-O COMPLEXITY CURVES</text>
+        </svg>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Algorithms · Complexity</div>
+        <div class="difficulty diff-easy">Easy</div>
+        <div class="card-title">Big O Cheat Sheet — Every Curve You Need to Know</div>
+        <div class="card-desc">Draw each curve one at a time with a pencil-stroke animation. Then freeze at n=1000 and show a vertical slice — the gap between O(log n) and O(n²) becomes viscerally obvious. Add real algorithm names to each curve.</div>
+        <div class="viral-score">🔥 Viral potential: <span>10/10</span> — most saved CS post of all time</div>
+        <div class="card-tags"><span class="tag">#bigo</span><span class="tag">#complexity</span><span class="tag">#algorithms</span></div>
+      </div>
+    </div>
+
+    <!-- 12. CAP Theorem -->
+    <div class="idea-card">
+      <div class="preview p-cap">
+        <svg viewBox="0 0 300 300" width="100%" height="100%">
+          <defs>
+            <radialGradient id="capGlow1" cx="50%" cy="50%">
+              <stop offset="0%" stop-color="#4facfe" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#4facfe" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="capGlow2" cx="50%" cy="50%">
+              <stop offset="0%" stop-color="#f97316" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="capGlow3" cx="50%" cy="50%">
+              <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <!-- Triangle -->
+          <polygon points="150,30 30,250 270,250" fill="none" stroke="#2a1f50" stroke-width="2"/>
+
+          <!-- Glowing circles at vertices -->
+          <circle cx="150" cy="30" r="40" fill="url(#capGlow1)"/>
+          <circle cx="30" cy="250" r="40" fill="url(#capGlow2)"/>
+          <circle cx="270" cy="250" r="40" fill="url(#capGlow3)"/>
+
+          <!-- Vertex labels -->
+          <circle cx="150" cy="30" r="22" fill="#0a1628" stroke="#4facfe" stroke-width="2"/>
+          <text x="150" y="26" text-anchor="middle" fill="#4facfe" font-size="8" font-family="JetBrains Mono" font-weight="bold">CONSISTENCY</text>
+          <text x="150" y="36" text-anchor="middle" fill="#4facfe" font-size="7" font-family="JetBrains Mono">C</text>
+
+          <circle cx="30" cy="250" r="22" fill="#1a0a05" stroke="#f97316" stroke-width="2"/>
+          <text x="30" y="246" text-anchor="middle" fill="#f97316" font-size="8" font-family="JetBrains Mono">AVAIL-</text>
+          <text x="30" y="256" text-anchor="middle" fill="#f97316" font-size="8" font-family="JetBrains Mono">ABILITY</text>
+
+          <circle cx="270" cy="250" r="22" fill="#0d0a1a" stroke="#a78bfa" stroke-width="2"/>
+          <text x="270" y="246" text-anchor="middle" fill="#a78bfa" font-size="7" font-family="JetBrains Mono">PARTITION</text>
+          <text x="270" y="256" text-anchor="middle" fill="#a78bfa" font-size="7" font-family="JetBrains Mono">TOLERANCE</text>
+
+          <!-- Real systems placed in triangle zones -->
+          <g>
+            <circle cx="150" cy="140" r="2" fill="#444"/>
+            <!-- CP zone -->
+            <rect x="108" y="90" width="56" height="20" rx="3" fill="rgba(79,172,254,0.1)" stroke="rgba(79,172,254,0.3)" stroke-width="1"/>
+            <text x="136" y="104" text-anchor="middle" fill="#4facfe" font-size="9" font-family="JetBrains Mono">HBase, Zookeeper</text>
+
+            <!-- AP zone -->
+            <rect x="52" y="195" width="76" height="20" rx="3" fill="rgba(249,115,22,0.1)" stroke="rgba(249,115,22,0.3)" stroke-width="1"/>
+            <text x="90" y="209" text-anchor="middle" fill="#f97316" font-size="9" font-family="JetBrains Mono">Cassandra, CouchDB</text>
+
+            <!-- CA zone -->
+            <rect x="172" y="195" width="70" height="20" rx="3" fill="rgba(167,139,250,0.1)" stroke="rgba(167,139,250,0.3)" stroke-width="1"/>
+            <text x="207" y="209" text-anchor="middle" fill="#a78bfa" font-size="9" font-family="JetBrains Mono">MySQL, Postgres</text>
+          </g>
+
+          <text x="150" y="283" text-anchor="middle" fill="#3a3055" font-size="9" font-family="JetBrains Mono">pick any 2. you can't have all 3.</text>
+        </svg>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Distributed Systems · Theory</div>
+        <div class="difficulty diff-medium">Medium</div>
+        <div class="card-title">CAP Theorem — Why You Can Never Have It All</div>
+        <div class="card-desc">Animate real databases — Cassandra, Zookeeper, MySQL — appearing in their zones of the triangle with a satisfying snap. Then simulate a network partition: watch CP systems reject writes while AP systems accept inconsistent data. The most argued-about theorem in distributed systems.</div>
+        <div class="viral-score">🔥 Viral potential: <span>9/10</span> — every senior dev debate topic</div>
+        <div class="card-tags"><span class="tag">#cap</span><span class="tag">#distributedsystems</span><span class="tag">#cassandra</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ====== SECTION 3: BONUS IDEAS ====== -->
+  <div class="section-head">
+    <h2>Bonus Deep Cuts</h2>
+    <div class="rule"></div>
+  </div>
+
+  <div class="grid">
+
+    <!-- 13. Trie autocomplete -->
+    <div class="idea-card">
+      <div class="preview p-trie">
+        <svg viewBox="0 0 300 280" width="100%" height="100%">
+          <!-- Trie for "app", "apple", "apply", "apt", "api" -->
+          <!-- Root -->
+          <circle cx="150" cy="30" r="16" fill="#0d1a30" stroke="#4facfe" stroke-width="2"/>
+          <text x="150" y="34" text-anchor="middle" fill="#4facfe" font-size="10" font-family="JetBrains Mono" font-weight="bold">root</text>
+
+          <!-- 'a' node -->
+          <line x1="150" y1="46" x2="150" y2="74" stroke="#2a3a50" stroke-width="1.5"/>
+          <circle cx="150" cy="85" r="16" fill="#0d2a1a" stroke="#3fb950" stroke-width="2"/>
+          <text x="150" y="89" text-anchor="middle" fill="#3fb950" font-size="12" font-family="JetBrains Mono" font-weight="bold">a</text>
+
+          <!-- 'p' node (from a) -->
+          <line x1="150" y1="101" x2="150" y2="129" stroke="#2a3a50" stroke-width="1.5"/>
+          <circle cx="150" cy="140" r="16" fill="#0d2a1a" stroke="#3fb950" stroke-width="2"/>
+          <text x="150" y="144" text-anchor="middle" fill="#3fb950" font-size="12" font-family="JetBrains Mono" font-weight="bold">p</text>
+
+          <!-- branches from 'p' -->
+          <line x1="140" y1="154" x2="80" y2="184" stroke="#2a3a50" stroke-width="1.5"/>
+          <line x1="150" y1="156" x2="150" y2="184" stroke="#2a3a50" stroke-width="1.5"/>
+          <line x1="160" y1="154" x2="220" y2="184" stroke="#2a3a50" stroke-width="1.5"/>
+
+          <!-- 'p' -> 'p' (app) -->
+          <circle cx="80" cy="195" r="16" fill="#1a1a0d" stroke="#fbbf24" stroke-width="2"/>
+          <text x="80" y="199" text-anchor="middle" fill="#fbbf24" font-size="12" font-family="JetBrains Mono" font-weight="bold">p</text>
+          <text x="80" y="221" text-anchor="middle" fill="#7a6010" font-size="8" font-family="JetBrains Mono">→"app"</text>
+
+          <!-- 'p' -> 'i' (api) -->
+          <circle cx="150" cy="195" r="16" fill="#1a0d1a" stroke="#e879f9" stroke-width="2"/>
+          <text x="150" y="199" text-anchor="middle" fill="#e879f9" font-size="12" font-family="JetBrains Mono" font-weight="bold">i</text>
+          <text x="150" y="221" text-anchor="middle" fill="#6a1a7a" font-size="8" font-family="JetBrains Mono">→"api"</text>
+
+          <!-- 'p' -> 't' (apt) -->
+          <circle cx="220" cy="195" r="16" fill="#1a0d0d" stroke="#f87171" stroke-width="2"/>
+          <text x="220" y="199" text-anchor="middle" fill="#f87171" font-size="12" font-family="JetBrains Mono" font-weight="bold">t</text>
+          <text x="220" y="221" text-anchor="middle" fill="#7a1a1a" font-size="8" font-family="JetBrains Mono">→"apt"</text>
+
+          <!-- app -> le, ly branches -->
+          <line x1="72" y1="209" x2="55" y2="250" stroke="#2a3a50" stroke-width="1.5"/>
+          <line x1="88" y1="209" x2="105" y2="250" stroke="#2a3a50" stroke-width="1.5"/>
+          <circle cx="50" cy="260" r="13" fill="#0a2a10" stroke="#3fb950" stroke-width="1.5"/>
+          <text x="50" y="264" text-anchor="middle" fill="#3fb950" font-size="9" font-family="JetBrains Mono">le</text>
+          <circle cx="110" cy="260" r="13" fill="#0a2a10" stroke="#3fb950" stroke-width="1.5"/>
+          <text x="110" y="264" text-anchor="middle" fill="#3fb950" font-size="9" font-family="JetBrains Mono">ly</text>
+
+          <!-- Search highlight path -->
+          <text x="240" y="50" fill="#4facfe" font-size="9" font-family="JetBrains Mono">searching</text>
+          <text x="240" y="62" fill="#4facfe" font-size="11" font-family="JetBrains Mono" font-weight="bold">"app*"</text>
+          <text x="240" y="78" fill="#3a5070" font-size="8" font-family="JetBrains Mono">matches:</text>
+          <text x="240" y="90" fill="#fbbf24" font-size="9" font-family="JetBrains Mono">• app</text>
+          <text x="240" y="102" fill="#3fb950" font-size="9" font-family="JetBrains Mono">• apple</text>
+          <text x="240" y="114" fill="#3fb950" font-size="9" font-family="JetBrains Mono">• apply</text>
+        </svg>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Data Structures · Search</div>
+        <div class="difficulty diff-medium">Medium</div>
+        <div class="card-title">Trie — How Google Autocomplete Works in Microseconds</div>
+        <div class="card-desc">Type a prefix letter by letter — watch the tree illuminate the matching path and all valid completions glow. Show how the prefix "app" instantly rules out all non-app branches. The tree metaphor for string search is incredibly intuitive.</div>
+        <div class="viral-score">🔥 Viral potential: <span>8/10</span> — practical, beautiful structure</div>
+        <div class="card-tags"><span class="tag">#trie</span><span class="tag">#autocomplete</span><span class="tag">#prefixsearch</span></div>
+      </div>
+    </div>
+
+    <!-- 14. Raft consensus -->
+    <div class="idea-card">
+      <div class="preview" style="background:#0c0c14;position:relative;overflow:hidden">
+        <svg viewBox="0 0 300 300" width="100%" height="100%">
+          <defs>
+            <radialGradient id="leaderGlow">
+              <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <!-- 5 nodes in circle -->
+          <!-- Node 1 - LEADER (top) -->
+          <circle cx="150" cy="60" r="35" fill="url(#leaderGlow)"/>
+          <circle cx="150" cy="60" r="28" fill="#1a1200" stroke="#fbbf24" stroke-width="2.5"/>
+          <text x="150" y="55" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="JetBrains Mono" font-weight="bold">NODE 1</text>
+          <text x="150" y="67" text-anchor="middle" fill="#fbbf24" font-size="8" font-family="JetBrains Mono">LEADER★</text>
+
+          <!-- Node 2 -->
+          <circle cx="252" cy="130" r="24" fill="#0a1628" stroke="#4facfe" stroke-width="1.5"/>
+          <text x="252" y="126" text-anchor="middle" fill="#4facfe" font-size="8" font-family="JetBrains Mono">NODE 2</text>
+          <text x="252" y="137" text-anchor="middle" fill="#2a4060" font-size="8" font-family="JetBrains Mono">follower</text>
+
+          <!-- Node 3 -->
+          <circle cx="210" cy="240" r="24" fill="#0a1628" stroke="#4facfe" stroke-width="1.5"/>
+          <text x="210" y="236" text-anchor="middle" fill="#4facfe" font-size="8" font-family="JetBrains Mono">NODE 3</text>
+          <text x="210" y="247" text-anchor="middle" fill="#2a4060" font-size="8" font-family="JetBrains Mono">follower</text>
+
+          <!-- Node 4 - CANDIDATE -->
+          <circle cx="90" cy="240" r="24" fill="#1a0a05" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4 2">
+            <animate attributeName="stroke-dashoffset" values="0;-12" dur="0.8s" repeatCount="indefinite"/>
+          </circle>
+          <text x="90" y="236" text-anchor="middle" fill="#f97316" font-size="8" font-family="JetBrains Mono">NODE 4</text>
+          <text x="90" y="247" text-anchor="middle" fill="#7a3010" font-size="7" font-family="JetBrains Mono">candidate?</text>
+
+          <!-- Node 5 - CRASHED -->
+          <circle cx="48" cy="130" r="24" fill="#111" stroke="#3a3a3a" stroke-width="1.5"/>
+          <text x="48" y="126" text-anchor="middle" fill="#444" font-size="8" font-family="JetBrains Mono">NODE 5</text>
+          <text x="48" y="137" text-anchor="middle" fill="#444" font-size="8" font-family="JetBrains Mono">CRASHED</text>
+          <line x1="34" y1="116" x2="62" y2="144" stroke="#333" stroke-width="2"/>
+          <line x1="62" y1="116" x2="34" y2="144" stroke="#333" stroke-width="2"/>
+
+          <!-- Heartbeat arrows from leader -->
+          <path d="M168,80 Q210,100 238,118" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7">
+            <animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" repeatCount="indefinite"/>
+          </path>
+          <path d="M162,86 Q190,160 196,220" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7">
+            <animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" repeatCount="indefinite" begin="0.3s"/>
+          </path>
+
+          <text x="150" y="285" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="JetBrains Mono" opacity="0.7">heartbeat → followers stay in sync</text>
+          <text x="150" y="298" text-anchor="middle" fill="#3a2a00" font-size="8" font-family="JetBrains Mono">3/5 nodes alive = cluster healthy (quorum)</text>
+        </svg>
+      </div>
+      <div class="card-meta">
+        <div class="card-topic">Distributed Systems · Consensus</div>
+        <div class="difficulty diff-hard">Hard</div>
+        <div class="card-title">Raft Consensus — How Kubernetes Stays Consistent</div>
+        <div class="card-desc">Animate heartbeats pulsing from leader to followers, then kill the leader node — watch the election timer fire, a candidate emerge, and votes being requested. The moment a new leader is crowned with 3/5 votes is visually electrifying.</div>
+        <div class="viral-score">🔥 Viral potential: <span>8/10</span> — etcd, Kubernetes, CockroachDB all use Raft</div>
+        <div class="card-tags"><span class="tag">#raft</span><span class="tag">#consensus</span><span class="tag">#kubernetes</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top:64px;padding-top:24px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:#bbb;">
+    <span>14 ideas · all buildable as interactive HTML</span>
+    <span>each one is a carousel post or Reel concept</span>
+  </div>
+
+</div>
+</body>
+</html>

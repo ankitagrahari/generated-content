@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RxJava — Think in Streams</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --accent3: #f59e0b;
+    --red: #ef4444;
+    --green: #22c55e;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0d0d14;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID NOISE BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,58,237,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* HEADER */
+  header {
+    padding: 60px 0 40px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .header-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-tag::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-size: clamp(42px, 7vw, 72px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -2px;
+  }
+
+  h1 .stream { color: var(--accent); }
+  h1 .think { color: var(--accent2); }
+
+  .subtitle {
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 400;
+    max-width: 560px;
+    line-height: 1.6;
+  }
+
+  /* NAV TABS */
+  .nav {
+    display: flex;
+    gap: 4px;
+    padding: 24px 0;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .nav-btn:hover { border-color: var(--accent); color: var(--text); }
+  .nav-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+  /* SECTIONS */
+  .section { display: none; padding: 40px 0 80px; }
+  .section.active { display: block; }
+
+  /* MENTAL MODEL */
+  .mental-model-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin: 32px 0;
+  }
+
+  .model-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .model-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .model-card.purple::before { background: var(--accent); }
+  .model-card.cyan::before { background: var(--accent2); }
+  .model-card.amber::before { background: var(--accent3); }
+  .model-card.green::before { background: var(--green); }
+
+  .model-card .icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .model-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .model-card p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* STREAM VISUALIZATION */
+  .stream-viz {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin: 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stream-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+
+  .stream-label {
+    color: var(--muted);
+    min-width: 100px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .stream-track {
+    flex: 1;
+    height: 32px;
+    background: var(--code-bg);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    min-width: 200px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .stream-track::after {
+    content: '→';
+    position: absolute;
+    right: 12px;
+    color: var(--muted);
+  }
+
+  .marble {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+    animation: flow 3s linear infinite;
+  }
+
+  @keyframes flow {
+    0% { opacity: 0; transform: translateX(-20px); }
+    10% { opacity: 1; transform: translateX(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  .marble:nth-child(2) { animation-delay: 0.5s; }
+  .marble:nth-child(3) { animation-delay: 1s; }
+  .marble:nth-child(4) { animation-delay: 1.5s; }
+  .marble:nth-child(5) { animation-delay: 2s; }
+
+  .m-purple { background: rgba(124,58,237,0.3); color: var(--accent); border: 1px solid var(--accent); }
+  .m-cyan { background: rgba(6,182,212,0.3); color: var(--accent2); border: 1px solid var(--accent2); }
+  .m-amber { background: rgba(245,158,11,0.3); color: var(--accent3); border: 1px solid var(--accent3); }
+  .m-red { background: rgba(239,68,68,0.3); color: var(--red); border: 1px solid var(--red); }
+  .m-green { background: rgba(34,197,94,0.3); color: var(--green); border: 1px solid var(--green); }
+
+  .op-badge {
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.3);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    align-self: center;
+    margin: 4px 0;
+  }
+
+  /* SCENARIO CARDS */
+  .scenario {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 24px 0;
+    overflow: hidden;
+  }
+
+  .scenario-header {
+    padding: 20px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+
+  .scenario-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.3);
+    padding: 4px 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .scenario-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .scenario-header p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .toggle-icon {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 18px;
+    transition: transform 0.3s;
+    flex-shrink: 0;
+    padding-top: 4px;
+  }
+
+  .scenario-header.open .toggle-icon { transform: rotate(180deg); }
+
+  .scenario-body { display: none; }
+  .scenario-body.open { display: block; }
+
+  .scenario-inner { padding: 24px; }
+
+  /* THINKING FRAMEWORK */
+  .think-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 16px 0;
+  }
+
+  .think-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 12px 16px;
+    background: var(--code-bg);
+    border-radius: 4px;
+    border-left: 2px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  .think-step.q { border-left-color: var(--accent2); }
+  .think-step.a { border-left-color: var(--accent); }
+
+  .step-label {
+    color: var(--accent2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 32px;
+    padding-top: 1px;
+  }
+  .think-step.a .step-label { color: var(--accent); }
+  .step-content { color: var(--text); line-height: 1.5; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+
+  .code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .code-lang {
+    color: var(--accent2);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .kw { color: #c084fc; } /* keywords */
+  .fn { color: #67e8f9; } /* functions/operators */
+  .st { color: #86efac; } /* strings */
+  .cm { color: #475569; font-style: italic; } /* comments */
+  .nm { color: #fbbf24; } /* numbers */
+  .tp { color: #f9a8d4; } /* types */
+  .op { color: #94a3b8; } /* operators */
+
+  /* PITFALLS */
+  .pitfall {
+    background: rgba(239,68,68,0.05);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+
+  .pitfall-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tip {
+    background: rgba(34,197,94,0.05);
+    border: 1px solid rgba(34,197,94,0.2);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+
+  .tip-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pitfall p, .tip p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* OPERATOR REFERENCE */
+  .op-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .op-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+  }
+
+  .op-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--accent2);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .op-when {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .op-category {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent3);
+    margin-bottom: 8px;
+  }
+
+  /* SECTION HEADINGS */
+  .section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    margin: 32px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h2 {
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: -1px;
+  }
+
+  .lead {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 680px;
+    margin-bottom: 24px;
+  }
+
+  /* SCHEDULER TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    margin: 20px 0;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 16px;
+    background: rgba(124,58,237,0.1);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  td {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  td:first-child { color: var(--accent2); }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* CHAIN BUILDER */
+  .chain-builder {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    margin: 24px 0;
+  }
+
+  .chain-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .chain-step {
+    display: flex;
+    gap: 16px;
+    position: relative;
+  }
+
+  .chain-step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 40px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .chain-dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    flex-shrink: 0;
+    background: var(--bg);
+    z-index: 1;
+  }
+
+  .chain-content {
+    padding: 8px 0 24px;
+  }
+
+  .chain-content h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+
+  .chain-content p {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.5;
+  }
+
+  /* QUIZ */
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+
+  .quiz-q {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .quiz-opt {
+    padding: 12px 16px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    transition: all 0.2s;
+    text-align: left;
+  }
+
+  .quiz-opt:hover { border-color: var(--accent); color: var(--text); }
+  .quiz-opt.correct { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+  .quiz-opt.wrong { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.05); }
+
+  .quiz-explain {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: rgba(124,58,237,0.05);
+    border: 1px solid rgba(124,58,237,0.2);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    display: none;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .quiz-explain.show { display: block; }
+
+  @media (max-width: 640px) {
+    .nav { gap: 6px; }
+    .nav-btn { font-size: 11px; padding: 6px 12px; }
+    pre { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="header-tag">Advanced RxJava Guide</div>
+    <h1><span class="think">Think</span> in<br><span class="stream">Streams</span></h1>
+    <p class="subtitle">Master complex RxJava chains through real-world scenarios. Learn the mental model, not just the operators.</p>
+  </header>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="show('mental')">Mental Model</button>
+    <button class="nav-btn" onclick="show('scenarios')">Scenarios</button>
+    <button class="nav-btn" onclick="show('chaining')">Chain Building</button>
+    <button class="nav-btn" onclick="show('threading')">Threading</button>
+    <button class="nav-btn" onclick="show('operators')">Operator Map</button>
+    <button class="nav-btn" onclick="show('quiz')">Quiz</button>
+  </nav>
+
+  <!-- ===================== MENTAL MODEL ===================== -->
+  <section id="mental" class="section active">
+    <h2>The Mental Model</h2>
+    <p class="lead">Before writing a single line, internalize these 4 mental shifts. Everything else follows from them.</p>
+
+    <div class="mental-model-grid">
+      <div class="model-card purple">
+        <div class="icon">🌊</div>
+        <h3>Everything is a stream</h3>
+        <p>A click, an API call, a DB query, a list — all are Observable&lt;T&gt;. Stop thinking "call this function". Think "subscribe to this event source".</p>
+      </div>
+      <div class="model-card cyan">
+        <div class="icon">🔗</div>
+        <h3>Operators transform, not execute</h3>
+        <p>map(), filter(), flatMap() define HOW data flows. Nothing runs until subscribe(). The chain is a blueprint, not execution.</p>
+      </div>
+      <div class="model-card amber">
+        <div class="icon">🧵</div>
+        <h3>Threads are declared, not managed</h3>
+        <p>You never start a Thread. You declare: "produce on IO thread, consume on Main". subscribeOn() and observeOn() handle the rest.</p>
+      </div>
+      <div class="model-card green">
+        <div class="icon">💥</div>
+        <h3>Errors are first-class citizens</h3>
+        <p>onError is a terminal event like onComplete. Handle errors in the chain with onErrorReturn, onErrorResumeNext — not try/catch.</p>
+      </div>
+    </div>
+
+    <div class="section-title">The 5 questions to ask before writing a chain</div>
+
+    <div class="think-steps">
+      <div class="think-step q">
+        <span class="step-label">Q1</span>
+        <span class="step-content">What is my <strong>source</strong>? (API call? DB? User event? In-memory list?)</span>
+      </div>
+      <div class="think-step a">
+        <span class="step-label">→</span>
+        <span class="step-content">Single for one item, Observable for many, Completable for no data, Maybe for 0 or 1</span>
+      </div>
+      <div class="think-step q">
+        <span class="step-label">Q2</span>
+        <span class="step-content">Does each emission spawn <strong>another async operation</strong>?</span>
+      </div>
+      <div class="think-step a">
+        <span class="step-label">→</span>
+        <span class="step-content">Yes → flatMap/switchMap/concatMap. No → map/filter</span>
+      </div>
+      <div class="think-step q">
+        <span class="step-label">Q3</span>
+        <span class="step-content">Do I need to <strong>combine</strong> multiple streams?</span>
+      </div>
+      <div class="think-step a">
+        <span class="step-label">→</span>
+        <span class="step-content">Both must emit → zip. Latest from each → combineLatest. One then other → concat/flatMap</span>
+      </div>
+      <div class="think-step q">
+        <span class="step-label">Q4</span>
+        <span class="step-content">Where should <strong>work happen</strong>, where should <strong>result land</strong>?</span>
+      </div>
+      <div class="think-step a">
+        <span class="step-label">→</span>
+        <span class="step-content">subscribeOn(Schedulers.io()) for work, observeOn(AndroidSchedulers.mainThread()) for UI</span>
+      </div>
+      <div class="think-step q">
+        <span class="step-label">Q5</span>
+        <span class="step-content">What happens when it <strong>fails</strong>?</span>
+      </div>
+      <div class="think-step a">
+        <span class="step-label">→</span>
+        <span class="step-content">Retry? → retry(n). Fallback value? → onErrorReturn. Alternative stream? → onErrorResumeNext</span>
+      </div>
+    </div>
+
+    <div class="section-title">Marble Diagram — Visualizing operators</div>
+
+    <div class="stream-viz">
+      <div class="stream-line">
+        <span class="stream-label">Source</span>
+        <div class="stream-track">
+          <div class="marble m-purple">1</div>
+          <div class="marble m-purple">2</div>
+          <div class="marble m-purple">3</div>
+          <div class="marble m-purple">4</div>
+          <div class="marble m-purple">5</div>
+        </div>
+      </div>
+      <div style="text-align:center; padding: 4px 0; font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+        <span class="op-badge">filter(x -> x % 2 == 0)</span>
+      </div>
+      <div class="stream-line">
+        <span class="stream-label">After filter</span>
+        <div class="stream-track">
+          <div class="marble m-cyan" style="animation-delay:0.5s">2</div>
+          <div class="marble m-cyan" style="animation-delay:1.5s">4</div>
+        </div>
+      </div>
+      <div style="text-align:center; padding: 4px 0; font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+        <span class="op-badge">map(x -> x * x)</span>
+      </div>
+      <div class="stream-line">
+        <span class="stream-label">After map</span>
+        <div class="stream-track">
+          <div class="marble m-amber" style="animation-delay:0.5s">4</div>
+          <div class="marble m-amber" style="animation-delay:1.5s">16</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Types at a glance</div>
+    <table>
+      <thead>
+        <tr><th>Type</th><th>Emissions</th><th>Use When</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Observable&lt;T&gt;</td><td>0…N items</td><td>Multiple results, UI events, lists</td></tr>
+        <tr><td>Single&lt;T&gt;</td><td>1 item or error</td><td>Single API call, DB read by ID</td></tr>
+        <tr><td>Maybe&lt;T&gt;</td><td>0 or 1 item</td><td>Optional DB result, cache lookup</td></tr>
+        <tr><td>Completable</td><td>no items</td><td>Save, delete, fire-and-forget</td></tr>
+        <tr><td>Flowable&lt;T&gt;</td><td>0…N + backpressure</td><td>High-volume streams, network streams</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===================== SCENARIOS ===================== -->
+  <section id="scenarios" class="section">
+    <h2>Real-World Scenarios</h2>
+    <p class="lead">Each scenario follows the same structure: Problem → Think → Build → Pitfalls.</p>
+
+    <!-- SCENARIO 1 -->
+    <div class="scenario">
+      <div class="scenario-header" onclick="toggleScenario(this)">
+        <span class="scenario-num">01</span>
+        <div>
+          <h3>Search with Debounce + API Call</h3>
+          <p>User types in a search box. Call API 300ms after they stop typing. Cancel previous call if they type again.</p>
+        </div>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="scenario-body">
+        <div class="scenario-inner">
+          <div class="think-steps">
+            <div class="think-step q"><span class="step-label">Think</span><span class="step-content">Source: text change events (Observable&lt;String&gt;)<br>Each text → async API call → need switchMap (cancels previous)</span></div>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Java · RxJava 2/3</span><span>Search Scenario</span></div>
+            <pre><span class="cm">// UI layer gives us an Observable of text changes</span>
+RxTextView.textChanges(searchEditText)          <span class="cm">// Observable&lt;CharSequence&gt;</span>
+    .debounce(<span class="nm">300</span>, TimeUnit.MILLISECONDS)        <span class="cm">// wait 300ms after last keystroke</span>
+    .map(CharSequence::toString)                <span class="cm">// convert to String</span>
+    .filter(query -> query.length() >= <span class="nm">3</span>)       <span class="cm">// skip short queries</span>
+    .distinctUntilChanged()                     <span class="cm">// skip if same as last</span>
+    .switchMap(query ->                         <span class="cm">// KEY: cancels prev call!</span>
+        apiService.search(query)                <span class="cm">// Single&lt;List&lt;Result&gt;&gt;</span>
+            .toObservable()
+            .onErrorResumeNext(err ->           <span class="cm">// don't kill stream on error</span>
+                Observable.just(Collections.emptyList())
+            )
+    )
+    .subscribeOn(Schedulers.io())
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(
+        results -> adapter.submitList(results),
+        error -> showError(error)
+    );</pre>
+          </div>
+          <div class="pitfall">
+            <div class="pitfall-title">⚠ Common Mistake</div>
+            <p>Using <strong>flatMap</strong> instead of switchMap. flatMap lets ALL calls run concurrently — results arrive out of order. switchMap disposes the previous inner observable when a new item arrives. Always use switchMap for "latest query wins" semantics.</p>
+          </div>
+          <div class="tip">
+            <div class="tip-title">✓ Pro Tip</div>
+            <p>Store the Disposable! <code>disposable = observable.subscribe(...);</code> and call <code>disposable.dispose()</code> in onDestroy/onPause. Without this, you leak subscriptions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENARIO 2 -->
+    <div class="scenario">
+      <div class="scenario-header" onclick="toggleScenario(this)">
+        <span class="scenario-num">02</span>
+        <div>
+          <h3>Parallel API Calls → Combine Results</h3>
+          <p>Fetch user profile + user orders simultaneously, merge them into a single UI model.</p>
+        </div>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="scenario-body">
+        <div class="scenario-inner">
+          <div class="think-steps">
+            <div class="think-step q"><span class="step-label">Think</span><span class="step-content">Two independent sources. Both must emit before we proceed. → zip(). Run both on io thread.</span></div>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Java · RxJava 2/3</span><span>Parallel + Zip</span></div>
+            <pre><span class="tp">Single</span>&lt;<span class="tp">UserProfile</span>&gt; profileSingle =
+    apiService.getUserProfile(userId)
+        .subscribeOn(Schedulers.io());          <span class="cm">// runs on IO thread</span>
+
+<span class="tp">Single</span>&lt;<span class="tp">List</span>&lt;<span class="tp">Order</span>&gt;&gt; ordersSingle =
+    apiService.getUserOrders(userId)
+        .subscribeOn(Schedulers.io());          <span class="cm">// also runs on IO thread (parallel!)</span>
+
+<span class="tp">Single</span>.zip(profileSingle, ordersSingle,     <span class="cm">// waits for BOTH</span>
+    (profile, orders) ->
+        <span class="kw">new</span> <span class="tp">UserDashboard</span>(profile, orders)        <span class="cm">// combine</span>
+)
+.observeOn(AndroidSchedulers.mainThread())
+.subscribe(
+    dashboard -> renderDashboard(dashboard),
+    error -> showError(error)
+);</pre>
+          </div>
+          <div class="tip">
+            <div class="tip-title">✓ Why this is parallel</div>
+            <p>Each Single has its own subscribeOn(io). When zip subscribes to both, they fire simultaneously on separate IO threads. zip() collects both results and emits only when both arrive. No thread blocking.</p>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Java</span><span>Variant: 3+ calls with zipArray</span></div>
+            <pre><span class="cm">// When you have dynamic number of API calls</span>
+<span class="tp">List</span>&lt;<span class="tp">Single</span>&lt;<span class="tp">ItemDetail</span>&gt;&gt; calls = ids.stream()
+    .map(id -> apiService.getItem(id).subscribeOn(Schedulers.io()))
+    .collect(Collectors.toList());
+
+<span class="tp">Single</span>.zip(calls, results -> {
+    <span class="tp">List</span>&lt;<span class="tp">ItemDetail</span>&gt; items = <span class="kw">new</span> ArrayList&lt;&gt;();
+    <span class="kw">for</span> (<span class="tp">Object</span> r : results) items.add((<span class="tp">ItemDetail</span>) r);
+    <span class="kw">return</span> items;
+}).subscribe(items -> renderList(items));</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENARIO 3 -->
+    <div class="scenario">
+      <div class="scenario-header" onclick="toggleScenario(this)">
+        <span class="scenario-num">03</span>
+        <div>
+          <h3>Sequential Dependent Calls (Chain)</h3>
+          <p>Get user → use userId to get their team → use teamId to get team members. Each call depends on the previous result.</p>
+        </div>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="scenario-body">
+        <div class="scenario-inner">
+          <div class="think-steps">
+            <div class="think-step q"><span class="step-label">Think</span><span class="step-content">Sequential, dependent → flatMap chains. Each step returns a new Single. The chain reads like a story: "get user, then get team, then get members".</span></div>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Java · RxJava 2/3</span><span>flatMap chaining</span></div>
+            <pre">apiService.getCurrentUser()                    <span class="cm">// Single&lt;User&gt;</span>
+    .flatMap(user ->
+        apiService.getTeam(user.getTeamId())   <span class="cm">// Single&lt;Team&gt;</span>
+    )
+    .flatMap(team ->
+        apiService.getTeamMembers(team.getId()) <span class="cm">// Single&lt;List&lt;Member&gt;&gt;</span>
+    )
+    .subscribeOn(Schedulers.io())
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(
+        members -> showMembers(members),
+        error -> handleError(error)
+    );
+
+<span class="cm">// ────── Variant: carry context forward ──────</span>
+<span class="cm">// If you need BOTH user AND members in the result:</span>
+apiService.getCurrentUser()
+    .flatMap(user ->
+        apiService.getTeam(user.getTeamId())
+            .flatMap(team ->
+                apiService.getTeamMembers(team.getId())
+                    .map(members -> <span class="kw">new</span> <span class="tp">TeamScreen</span>(user, team, members))
+            )
+    )
+    .subscribe(screen -> render(screen));</pre>
+          </div>
+          <div class="pitfall">
+            <div class="pitfall-title">⚠ Don't nest too deep</div>
+            <p>If you're nesting flatMaps 4+ levels deep, extract each step into a private method that returns a Single/Observable. Flat chains read better than nested pyramids.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENARIO 4 -->
+    <div class="scenario">
+      <div class="scenario-header" onclick="toggleScenario(this)">
+        <span class="scenario-num">04</span>
+        <div>
+          <h3>Cache → Network with Fallback</h3>
+          <p>Show cached data immediately if available, then fetch fresh data. If network fails, show cache instead of error.</p>
+        </div>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="scenario-body">
+        <div class="scenario-inner">
+          <div class="think-steps">
+            <div class="think-step q"><span class="step-label">Think</span><span class="step-content">Two sources. Want BOTH to emit (cache first, then network). Use concat() or merge() strategically. For error fallback: onErrorResumeNext.</span></div>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Java</span><span>Cache + Network Strategy</span></div>
+            <pre"><span class="cm">// Strategy 1: Cache first, then network (show updates)</span>
+<span class="tp">Observable</span>&lt;<span class="tp">List</span>&lt;<span class="tp">Article</span>&gt;&gt; cacheSource =
+    database.getArticles()                      <span class="cm">// Maybe or Observable</span>
+        .toObservable()
+        .onErrorResumeNext(Observable.empty()); <span class="cm">// skip if cache empty</span>
+
+<span class="tp">Observable</span>&lt;<span class="tp">List</span>&lt;<span class="tp">Article</span>&gt;&gt; networkSource =
+    apiService.fetchArticles()
+        .toObservable()
+        .doOnNext(articles ->
+            database.saveArticles(articles)     <span class="cm">// save fresh data</span>
+                .subscribeOn(Schedulers.io())
+                .subscribe()
+        )
+        .onErrorResumeNext(err ->
+            database.getArticles().toObservable() <span class="cm">// fallback to cache</span>
+        );
+
+<span class="tp">Observable</span>.concat(cacheSource, networkSource) <span class="cm">// cache first, then network</span>
+    .distinctUntilChanged()                     <span class="cm">// skip if same data</span>
+    .subscribeOn(Schedulers.io())
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(articles -> updateUI(articles));</pre>
+          </div>
+          <div class="tip">
+            <div class="tip-title">✓ concat vs merge</div>
+            <p><strong>concat</strong> runs sources sequentially (waits for cache to complete before network). <strong>merge</strong> subscribes to both simultaneously — use when both sources are independent and you want the fastest to win.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENARIO 5 -->
+    <div class="scenario">
+      <div class="scenario-header" onclick="toggleScenario(this)">
+        <span class="scenario-num">05</span>
+        <div>
+          <h3>Polling with Retry & Exponential Backoff</h3>
+          <p>Poll an endpoint every 5s. On failure, retry up to 3 times with exponential backoff (1s, 2s, 4s delay).</p>
+        </div>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="scenario-body">
+        <div class="scenario-inner">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Java</span><span>Polling + Exponential Backoff</span></div>
+            <pre"><span class="tp">Observable</span>.interval(<span class="nm">0</span>, <span class="nm">5</span>, TimeUnit.SECONDS, Schedulers.io())
+    .flatMap(tick ->
+        apiService.checkStatus()
+            .toObservable()
+            .retryWhen(errors ->
+                errors.zipWith(
+                    <span class="tp">Observable</span>.range(<span class="nm">1</span>, <span class="nm">3</span>),          <span class="cm">// max 3 retries</span>
+                    (error, attempt) -> attempt
+                )
+                .flatMap(attempt ->
+                    <span class="tp">Observable</span>.timer(
+                        (<span class="kw">long</span>) <span class="tp">Math</span>.pow(<span class="nm">2</span>, attempt - <span class="nm">1</span>),  <span class="cm">// 1s, 2s, 4s</span>
+                        TimeUnit.SECONDS
+                    )
+                )
+            )
+            .onErrorReturn(e -> <span class="tp">Status</span>.error(e))   <span class="cm">// don't kill outer stream</span>
+    )
+    .distinctUntilChanged()
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(status -> updateStatusUI(status));</pre>
+          </div>
+          <div class="pitfall">
+            <div class="pitfall-title">⚠ Critical: onErrorReturn inside flatMap</div>
+            <p>Without onErrorReturn/onErrorResumeNext INSIDE the flatMap, a single failed poll will terminate the entire outer interval stream. Always handle inner stream errors locally so the outer polling loop keeps running.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENARIO 6 -->
+    <div class="scenario">
+      <div class="scenario-header" onclick="toggleScenario(this)">
+        <span class="scenario-num">06</span>
+        <div>
+          <h3>Rate Limiting / Batch Processing</h3>
+          <p>Given 1000 IDs, fetch in batches of 50. Don't flood the API.</p>
+        </div>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="scenario-body">
+        <div class="scenario-inner">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Java</span><span>Batching with buffer + concatMap</span></div>
+            <pre"><span class="tp">Observable</span>.fromIterable(allIds)              <span class="cm">// 1000 IDs</span>
+    .buffer(<span class="nm">50</span>)                               <span class="cm">// groups into List&lt;String&gt; of 50</span>
+    .concatMap(batch ->                        <span class="cm">// sequential, not parallel</span>
+        apiService.fetchBatch(batch)
+            .toObservable()
+            .delay(<span class="nm">200</span>, TimeUnit.MILLISECONDS)   <span class="cm">// throttle between batches</span>
+    )
+    .subscribeOn(Schedulers.io())
+    .subscribe(
+        results -> processResults(results),
+        error -> handleError(error),
+        () -> onAllDone()
+    );
+
+<span class="cm">// concatMap = sequential flatMap
+// flatMap   = parallel (all at once, risky)
+// concatMap = one batch finishes, then next starts</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CHAIN BUILDING ===================== -->
+  <section id="chaining" class="section">
+    <h2>How to Build Long Chains</h2>
+    <p class="lead">The trick: think in layers. Each layer has a job. Write them one at a time, test as you go.</p>
+
+    <div class="section-title">The 6-Layer Framework</div>
+
+    <div class="chain-builder">
+      <div class="chain-steps">
+        <div class="chain-step">
+          <div class="chain-dot">1</div>
+          <div class="chain-content">
+            <h4>Source Layer — What emits?</h4>
+            <p>Observable.fromCallable() / Single.fromCallable() / RxTextView.textChanges() / PublishSubject<br>Don't call the function — wrap it: fromCallable(() -> blockingCall())</p>
+          </div>
+        </div>
+        <div class="chain-step">
+          <div class="chain-dot">2</div>
+          <div class="chain-content">
+            <h4>Transform Layer — Shape the data</h4>
+            <p>map(), filter(), flatMap(), switchMap(), concatMap()<br>Ask: "does this transform synchronously?" → map. "does it create another async source?" → flatMap</p>
+          </div>
+        </div>
+        <div class="chain-step">
+          <div class="chain-dot">3</div>
+          <div class="chain-content">
+            <h4>Combine Layer — Multiple sources?</h4>
+            <p>zip(), combineLatest(), merge(), concat(), amb()<br>Only add this layer if you have 2+ streams to join</p>
+          </div>
+        </div>
+        <div class="chain-step">
+          <div class="chain-dot">4</div>
+          <div class="chain-content">
+            <h4>Control Layer — Timing & flow control</h4>
+            <p>debounce(), throttleFirst(), buffer(), window(), take(), skip()<br>Add only for UI events or high-frequency streams</p>
+          </div>
+        </div>
+        <div class="chain-step">
+          <div class="chain-dot">5</div>
+          <div class="chain-content">
+            <h4>Error Layer — What happens on failure?</h4>
+            <p>onErrorReturn(default), onErrorResumeNext(fallbackStream), retry(n), retryWhen(handler)<br>Always handle errors! Unhandled = crash</p>
+          </div>
+        </div>
+        <div class="chain-step">
+          <div class="chain-dot">6</div>
+          <div class="chain-content">
+            <h4>Thread Layer — Where does it run?</h4>
+            <p>subscribeOn(Schedulers.io()) — once per chain<br>observeOn(mainThread()) — right before UI update<br>Additional observeOn() to hop threads mid-chain</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">flatMap vs switchMap vs concatMap — The Decision Tree</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Decision Guide</span></div>
+      <pre"><span class="cm">// Question: multiple inner observables from each item?</span>
+
+<span class="cm">// ✓ Use flatMap when:
+// - Order doesn't matter
+// - All results needed (e.g. save multiple items simultaneously)
+// - No new item invalidates previous</span>
+items.flatMap(item -> save(item))  <span class="cm">// all saves run in parallel</span>
+
+<span class="cm">// ✓ Use switchMap when:
+// - Latest item cancels previous (search, autocomplete)
+// - Only the LAST emission's result matters</span>
+searchText.switchMap(q -> api.search(q))  <span class="cm">// old request cancelled</span>
+
+<span class="cm">// ✓ Use concatMap when:
+// - Order matters (process 1, then 2, then 3)
+// - Don't want parallel execution
+// - Sequential queue behavior</span>
+actions.concatMap(action -> processAction(action))</pre>
+    </div>
+
+    <div class="section-title">Avoiding callback hell — before and after</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">❌ Before RxJava — callback hell</span></div>
+      <pre">api.getUser(userId, <span class="kw">new</span> Callback&lt;User&gt;() {
+    <span class="kw">public void</span> onSuccess(User user) {
+        api.getOrders(user.getId(), <span class="kw">new</span> Callback&lt;Orders&gt;() {
+            <span class="kw">public void</span> onSuccess(Orders orders) {
+                api.getRecommendations(orders, <span class="kw">new</span> Callback&lt;List&gt;() {
+                    <span class="cm">// impossible to read, impossible to test</span>
+                });
+            }
+        });
+    }
+});</pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">✓ After RxJava — readable chain</span></div>
+      <pre">apiService.getUser(userId)
+    .flatMap(user -> apiService.getOrders(user.getId()))
+    .flatMap(orders -> apiService.getRecommendations(orders))
+    .subscribeOn(Schedulers.io())
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(recs -> showRecommendations(recs),
+               err -> showError(err));</pre>
+    </div>
+  </section>
+
+  <!-- ===================== THREADING ===================== -->
+  <section id="threading" class="section">
+    <h2>Threading Without Blocking</h2>
+    <p class="lead">The golden rule: never call .blockingGet() or .blockingFirst() on the main thread. Use schedulers instead.</p>
+
+    <div class="section-title">Scheduler Reference</div>
+
+    <table>
+      <thead>
+        <tr><th>Scheduler</th><th>Use For</th><th>Thread Pool</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Schedulers.io()</td><td>Network, disk I/O, DB queries</td><td>Unbounded cached thread pool</td></tr>
+        <tr><td>Schedulers.computation()</td><td>CPU-heavy work (parsing, sorting)</td><td>Fixed (# of CPU cores)</td></tr>
+        <tr><td>Schedulers.newThread()</td><td>Isolated one-off work</td><td>New thread per subscribe</td></tr>
+        <tr><td>Schedulers.single()</td><td>Sequential work, no parallelism</td><td>Single background thread</td></tr>
+        <tr><td>Schedulers.trampoline()</td><td>Testing, queued on current thread</td><td>Current thread (queued)</td></tr>
+        <tr><td>AndroidSchedulers.mainThread()</td><td>UI updates (Android)</td><td>Android main/UI thread</td></tr>
+      </tbody>
+    </table>
+
+    <div class="section-title">The subscribeOn vs observeOn pattern</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Java</span><span>Thread hopping mid-chain</span></div>
+      <pre"><span class="cm">// subscribeOn: where the SOURCE subscribes (set once)</span>
+<span class="cm">// observeOn: downstream operators run on this thread</span>
+
+<span class="cm">// Example: Process on IO, heavy transform on Computation, show on Main</span>
+apiService.fetchData()                         <span class="cm">// starts on IO thread</span>
+    .subscribeOn(Schedulers.io())              <span class="cm">// IO thread: subscription + fetch</span>
+    .map(rawData -> parseJson(rawData))        <span class="cm">// still on IO</span>
+    .observeOn(Schedulers.computation())       <span class="cm">// hop to computation</span>
+    .map(parsed -> heavyTransform(parsed))     <span class="cm">// on computation thread</span>
+    .observeOn(AndroidSchedulers.mainThread()) <span class="cm">// hop to main thread</span>
+    .subscribe(result -> textView.setText(result)); <span class="cm">// UI update on main</span>
+
+<span class="cm">// RULE: multiple observeOn() allowed, but subscribeOn() only matters FIRST time it appears</span></pre>
+    </div>
+
+    <div class="tip">
+      <div class="tip-title">✓ Never block the stream</div>
+      <p>If you need a blocking call inside a chain, wrap it: <br><code>Single.fromCallable(() -> blockingDatabaseQuery())</code><br>This wraps the blocking call in a lazy supplier and runs it on the subscribed scheduler — no thread blocked by RxJava itself.</p>
+    </div>
+
+    <div class="pitfall">
+      <div class="pitfall-title">⚠ The subscribeOn trap</div>
+      <p>subscribeOn() only affects the thread where the source STARTS. If you put it at the bottom of a chain with many flatMaps, inner observables may have already subscribed on default threads. Always put subscribeOn() right after the source, and use individual .subscribeOn() in inner Observables for parallel flatMaps.</p>
+    </div>
+
+    <div class="section-title">CompositeDisposable — No more leaks</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Java · Android ViewModel pattern</span></div>
+      <pre"><span class="kw">public class</span> <span class="tp">UserViewModel</span> <span class="kw">extends</span> <span class="tp">ViewModel</span> {
+
+    <span class="kw">private final</span> <span class="tp">CompositeDisposable</span> disposables = <span class="kw">new</span> <span class="tp">CompositeDisposable</span>();
+
+    <span class="kw">public void</span> loadUser(<span class="tp">String</span> id) {
+        disposables.add(                          <span class="cm">// track it</span>
+            apiService.getUser(id)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(user -> liveData.setValue(user),
+                           err -> error.setValue(err))
+        );
+    }
+
+    <span class="cm">// Called automatically when ViewModel is cleared</span>
+    <span class="kw">@Override protected void</span> onCleared() {
+        disposables.clear();                      <span class="cm">// disposes ALL at once</span>
+    }
+}</pre>
+    </div>
+  </section>
+
+  <!-- ===================== OPERATORS ===================== -->
+  <section id="operators" class="section">
+    <h2>Operator Mental Map</h2>
+    <p class="lead">The right operator for the right job. Organized by what problem they solve.</p>
+
+    <div class="section-title">Transform</div>
+    <div class="op-grid">
+      <div class="op-card"><div class="op-category">Transform</div><div class="op-name">map(f)</div><div class="op-when">Synchronous 1-to-1 transform. "Convert each item."</div></div>
+      <div class="op-card"><div class="op-category">Transform</div><div class="op-name">flatMap(f)</div><div class="op-when">Each item → new Observable. Merge results. ORDER NOT GUARANTEED. Use for parallel async.</div></div>
+      <div class="op-card"><div class="op-category">Transform</div><div class="op-name">concatMap(f)</div><div class="op-when">Like flatMap but sequential. ORDER GUARANTEED. Use when sequence matters.</div></div>
+      <div class="op-card"><div class="op-category">Transform</div><div class="op-name">switchMap(f)</div><div class="op-when">Each new item cancels previous inner observable. Use for "latest wins" (search, tabs).</div></div>
+      <div class="op-card"><div class="op-category">Transform</div><div class="op-name">scan(acc, f)</div><div class="op-when">Accumulate state over emissions. Like reduce but emits each step. Good for running totals.</div></div>
+    </div>
+
+    <div class="section-title">Filter</div>
+    <div class="op-grid">
+      <div class="op-card"><div class="op-category">Filter</div><div class="op-name">filter(predicate)</div><div class="op-when">Drop items that don't match. Most common gatekeeper.</div></div>
+      <div class="op-card"><div class="op-category">Filter</div><div class="op-name">distinctUntilChanged()</div><div class="op-when">Skip if same as previous. Great for state streams (don't re-render identical state).</div></div>
+      <div class="op-card"><div class="op-category">Filter</div><div class="op-name">debounce(t)</div><div class="op-when">Emit only after silence for t. Use for search inputs, form validation.</div></div>
+      <div class="op-card"><div class="op-category">Filter</div><div class="op-name">throttleFirst(t)</div><div class="op-when">Emit first item, ignore for t. Use for button clicks (prevent double-click).</div></div>
+      <div class="op-card"><div class="op-category">Filter</div><div class="op-name">take(n) / skip(n)</div><div class="op-when">Limit or skip emissions. take(1) completes after first — great for "fire once".</div></div>
+    </div>
+
+    <div class="section-title">Combine</div>
+    <div class="op-grid">
+      <div class="op-card"><div class="op-category">Combine</div><div class="op-name">zip(s1, s2, f)</div><div class="op-when">Pair items 1-to-1 from both. Both must emit. Use for parallel calls.</div></div>
+      <div class="op-card"><div class="op-category">Combine</div><div class="op-name">combineLatest(s1, s2, f)</div><div class="op-when">Emit when EITHER emits, using latest from each. Use for form validation (username + password).</div></div>
+      <div class="op-card"><div class="op-category">Combine</div><div class="op-name">merge(s1, s2)</div><div class="op-when">Interleave emissions from multiple streams. Use when both sources are active simultaneously.</div></div>
+      <div class="op-card"><div class="op-category">Combine</div><div class="op-name">concat(s1, s2)</div><div class="op-when">s1 completes, then s2 starts. Sequential. Use for cache → network.</div></div>
+      <div class="op-card"><div class="op-category">Combine</div><div class="op-name">withLatestFrom(other)</div><div class="op-when">When source emits, pair with latest from 'other'. Use for button click + latest form state.</div></div>
+    </div>
+
+    <div class="section-title">Error Handling</div>
+    <div class="op-grid">
+      <div class="op-card"><div class="op-category">Error</div><div class="op-name">onErrorReturn(val)</div><div class="op-when">Replace error with a default value. Stream completes normally.</div></div>
+      <div class="op-card"><div class="op-category">Error</div><div class="op-name">onErrorResumeNext(obs)</div><div class="op-when">Replace error with another Observable. Great for fallback to cache.</div></div>
+      <div class="op-card"><div class="op-category">Error</div><div class="op-name">retry(n)</div><div class="op-when">Resubscribe up to n times on error. Good for transient network failures.</div></div>
+      <div class="op-card"><div class="op-category">Error</div><div class="op-name">retryWhen(handler)</div><div class="op-when">Custom retry logic (exponential backoff, conditional). Most powerful error recovery.</div></div>
+    </div>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section id="quiz" class="section">
+    <h2>Test Your Thinking</h2>
+    <p class="lead">Pick the right approach for each scenario. No looking at the code!</p>
+
+    <div class="quiz-card">
+      <div class="quiz-q">1. User types in a search box. You want to call the API but only after they stop typing, and if they type again before the API returns, cancel the in-flight request. Which operator combo?</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'flatMap runs ALL requests concurrently. Old requests are NOT cancelled. Results arrive out of order.')">debounce() + flatMap()</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'debounce() waits for typing to pause. switchMap() subscribes to the new API call AND disposes the previous one. This is the canonical search pattern.')">debounce() + switchMap()</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'concatMap is sequential — it would queue requests and wait for each to finish before starting the next. Terrible UX for live search.')">debounce() + concatMap()</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'throttleFirst emits the FIRST item and ignores subsequent ones for a period. It would send the first letter and block subsequent queries.')">throttleFirst() + flatMap()</button>
+      </div>
+      <div class="quiz-explain"></div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q">2. You need to fetch User and their Orders simultaneously (not sequentially), then combine them. Which operator?</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'flatMap is for transforming emissions of a SINGLE source into multiple inner observables. It doesn\'t natively combine two independent sources as pairs.')">flatMap()</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'combineLatest emits whenever EITHER source emits, using the latest from each. It would emit partial results before both are ready.')">combineLatest()</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'zip() waits for BOTH sources to emit, then combines them pairwise. It\'s perfect for parallel API calls where you need both results to proceed.')">zip()</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'concat runs sources sequentially — orders fetch only starts AFTER user fetch completes. That\'s serial, not parallel.')">concat()</button>
+      </div>
+      <div class="quiz-explain"></div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q">3. You're polling an endpoint every 5s. Inside flatMap, the API fails. Without error handling in the flatMap, what happens to the outer interval stream?</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'RxJava does not auto-retry inner observables. The error propagates immediately.')">It auto-retries the inner call 3 times</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'The interval itself does not absorb errors from inner observables. The error escapes.')">The interval stream catches it and logs it</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'An unhandled error in an inner observable propagates to the outer stream\'s onError, terminating it. The interval stops permanently. This is why you must handle errors inside flatMap with onErrorReturn or onErrorResumeNext.')">The ENTIRE outer interval stream terminates</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'Inner errors don\'t get swallowed — they propagate outward unless explicitly handled.')">Nothing — the error is silently swallowed</button>
+      </div>
+      <div class="quiz-explain"></div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q">4. You have a form with username and password fields. The submit button should only be enabled when BOTH fields are non-empty. Which operator?</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'zip pairs items 1-to-1. If username emits 5 times and password emits 3 times, zip stops at 3. It doesn\'t track latest values.')">zip()</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'combineLatest emits whenever EITHER field changes, using the latest value from EACH field. It always has the current state of the whole form — perfect for real-time validation.')">combineLatest()</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'merge just interleaves emissions — you lose the pairing. You\'d get a stream of Strings with no way to know which field they came from.')">merge()</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'withLatestFrom only triggers from ONE source (username), sampled against the other. You\'d miss validation updates when only password changes.')">withLatestFrom()</button>
+      </div>
+      <div class="quiz-explain"></div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q">5. subscribeOn() is called twice in a chain. What happens?</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'Both do NOT take effect. Only the first (closest to source) subscribeOn matters.')">Both take effect — threads are stacked</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'The last one does NOT win. subscribeOn works upward toward the source — the one closest to the source wins.')">The last one wins</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'subscribeOn() determines where the subscription propagates UP to the source. Only the FIRST one encountered (closest to source) has effect. Use observeOn() to switch threads mid-chain instead.')">The first one (closest to source) wins</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'It does not throw — it compiles and runs. The second call just has no effect.')">It throws an exception</button>
+      </div>
+      <div class="quiz-explain"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function toggleScenario(header) {
+  const isOpen = header.classList.contains('open');
+  // close all
+  document.querySelectorAll('.scenario-header').forEach(h => h.classList.remove('open'));
+  document.querySelectorAll('.scenario-body').forEach(b => b.classList.remove('open'));
+  if (!isOpen) {
+    header.classList.add('open');
+    header.nextElementSibling.classList.add('open');
+  }
+}
+
+function answer(btn, correct, explanation) {
+  const card = btn.closest('.quiz-card');
+  if (card.querySelector('.correct') || card.querySelector('.wrong')) return; // already answered
+
+  const opts = card.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.disabled = true);
+
+  btn.classList.add(correct ? 'correct' : 'wrong');
+
+  if (!correct) {
+    // find the correct one
+    opts.forEach(o => {
+      // re-check by searching correct one — find it by looking for correct answer index
+    });
+  }
+
+  const explain = card.querySelector('.quiz-explain');
+  explain.textContent = (correct ? '✓ Correct! ' : '✗ Not quite. ') + explanation;
+  explain.classList.add('show');
+}
+</script>
+</body>
+</html>

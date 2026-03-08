@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LRU Cache — Instagram Post</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;0,900;1,300;1,700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.post {
+  width: 540px;
+  height: 540px;
+  background: #f7f2e8;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Grain overlay */
+.post::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0.5;
+}
+
+/* Top accent bar */
+.top-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #c9391a, #e8820a, #c9391a);
+}
+
+/* Header */
+.header {
+  position: absolute;
+  top: 22px; left: 28px; right: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 5;
+  border-bottom: 1px solid #d4cfc3;
+  padding-bottom: 10px;
+}
+
+.eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #c9391a;
+}
+
+.issue-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: #aaa49a;
+  letter-spacing: 1px;
+}
+
+/* Title */
+.title-area {
+  position: absolute;
+  top: 56px;
+  left: 28px;
+  right: 28px;
+  z-index: 5;
+}
+
+.main-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 46px;
+  color: #1a1510;
+  line-height: 0.92;
+  letter-spacing: -2px;
+}
+
+.main-title em {
+  font-style: italic;
+  color: #c9391a;
+}
+
+.subtitle {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #8a857a;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* Capacity badge */
+.capacity-badge {
+  position: absolute;
+  top: 56px;
+  right: 28px;
+  background: #1a1510;
+  color: #f7f2e8;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  padding: 6px 12px;
+  letter-spacing: 1px;
+  z-index: 5;
+}
+
+/* Main visualization */
+.viz {
+  position: absolute;
+  top: 168px;
+  left: 28px;
+  right: 28px;
+  z-index: 5;
+}
+
+/* MRU / LRU labels */
+.end-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.end-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.mru-label { color: #2a7a3a; }
+.lru-label { color: #c9391a; }
+
+/* The cache track */
+.cache-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  height: 72px;
+}
+
+.cache-node {
+  flex: 1;
+  height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid;
+  position: relative;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: nodeIn 0.5s ease backwards;
+  cursor: default;
+}
+
+@keyframes nodeIn {
+  from { opacity: 0; transform: scale(0.8) translateY(-10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.cache-node .node-key {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.cache-node .node-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  margin-top: 3px;
+  opacity: 0.6;
+}
+
+.cache-node .node-rank {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  font-family: 'DM Mono', monospace;
+  font-size: 7px;
+  opacity: 0.4;
+}
+
+/* Arrow connectors */
+.conn {
+  width: 18px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.conn-arrow {
+  font-size: 9px;
+  color: #bbb5aa;
+  line-height: 1;
+}
+
+/* Node states */
+.node-fresh {
+  background: #e8f4ea;
+  border-color: #2a7a3a;
+}
+.node-fresh .node-key { color: #2a7a3a; }
+.node-fresh .node-val { color: #2a7a3a; }
+
+.node-mid {
+  background: #fff;
+  border-color: #d4cfc3;
+}
+.node-mid .node-key { color: #3a3530; }
+
+.node-old {
+  background: #fdf1ee;
+  border-color: #e0a090;
+}
+.node-old .node-key { color: #c9391a; }
+.node-old .node-val { color: #c9391a; }
+
+.node-evict {
+  background: #f5eeee;
+  border-color: #c9391a;
+  opacity: 0.55;
+}
+.node-evict .node-key {
+  color: #c9391a;
+  text-decoration: line-through;
+}
+
+/* Operations log */
+.ops-section {
+  margin-top: 14px;
+}
+
+.ops-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #aaa49a;
+  margin-bottom: 8px;
+}
+
+.ops-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.op-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid;
+  opacity: 0;
+  animation: opIn 0.3s ease forwards;
+}
+
+@keyframes opIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.op-cmd {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.op-result {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.op-hit   { background: #eaf4eb; border-color: #b5d9ba; }
+.op-hit   .op-cmd { color: #1a5a24; }
+.op-hit   .op-result { color: #2a7a3a; }
+
+.op-miss  { background: #fdf0ed; border-color: #e8c0b0; }
+.op-miss  .op-cmd { color: #7a2010; }
+.op-miss  .op-result { color: #c9391a; }
+
+.op-put   { background: #fff8ee; border-color: #e8d0a0; }
+.op-put   .op-cmd { color: #5a3a00; }
+.op-put   .op-result { color: #8a6010; }
+
+.op-evict { background: #f5eeee; border-color: #d4a898; }
+.op-evict .op-cmd { color: #7a2020; }
+.op-evict .op-result { color: #c9391a; }
+
+/* Bottom strip */
+.bottom-strip {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 38px;
+  background: #1a1510;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  z-index: 5;
+}
+
+.bottom-fact {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: #6a6050;
+  letter-spacing: 0.5px;
+}
+
+.bottom-tags {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: #3a3028;
+  text-align: right;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<div class="post">
+  <div class="top-bar"></div>
+
+  <div class="header">
+    <div class="eyebrow">Data Structures · Caching</div>
+    <div class="issue-num">02 / 03</div>
+  </div>
+
+  <div class="title-area">
+    <div class="main-title">LRU<br><em>Cache</em></div>
+    <div class="subtitle">least recently used · O(1) get & put</div>
+  </div>
+
+  <div class="capacity-badge">CAP = 4</div>
+
+  <div class="viz">
+    <div class="end-labels">
+      <div class="end-label mru-label">◀ most recent</div>
+      <div class="end-label lru-label">least recent ▶</div>
+    </div>
+
+    <div class="cache-track" id="cache-track">
+      <!-- Nodes rendered by JS -->
+    </div>
+
+    <div class="ops-section">
+      <div class="ops-title">operation log</div>
+      <div class="ops-grid" id="ops-grid">
+        <!-- Ops rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-strip">
+    <div class="bottom-fact">HashMap + Doubly-Linked List = O(1) magic</div>
+    <div class="bottom-tags">#lrucache #systemdesign</div>
+  </div>
+</div>
+
+<script>
+// State: doubly-linked list as array from MRU to LRU
+// Keys: letters, values: numbers
+const CAPACITY = 4;
+
+const ops = [
+  { type: 'put',  key: 'E', val: 99 },
+  { type: 'put',  key: 'B', val: 42 },
+  { type: 'put',  key: 'C', val: 7  },
+  { type: 'put',  key: 'A', val: 13 },
+  { type: 'get',  key: 'B'           },  // hit, B moves to front
+  { type: 'put',  key: 'D', val: 55 },  // evicts A (LRU)
+  { type: 'get',  key: 'Z'           },  // miss
+  { type: 'get',  key: 'E'           },  // hit
+];
+
+let cache = []; // [{ key, val }] index 0 = MRU
+let completed = [];
+
+function doOp(op) {
+  if (op.type === 'put') {
+    const existing = cache.findIndex(n => n.key === op.key);
+    if (existing !== -1) cache.splice(existing, 1);
+    cache.unshift({ key: op.key, val: op.val });
+    let evicted = null;
+    if (cache.length > CAPACITY) { evicted = cache.pop(); }
+    completed.push({ ...op, hit: null, evicted: evicted?.key });
+  } else {
+    const idx = cache.findIndex(n => n.key === op.key);
+    const hit = idx !== -1;
+    if (hit) {
+      const [node] = cache.splice(idx, 1);
+      cache.unshift(node);
+    }
+    completed.push({ ...op, hit });
+  }
+}
+
+function getNodeClass(i) {
+  if (i === 0) return 'node-fresh';
+  if (i === cache.length - 1) return 'node-old';
+  return 'node-mid';
+}
+
+function render() {
+  const track = document.getElementById('cache-track');
+  track.innerHTML = '';
+
+  cache.forEach((node, i) => {
+    if (i > 0) {
+      const conn = document.createElement('div');
+      conn.className = 'conn';
+      conn.innerHTML = `<div class="conn-arrow">⇆</div>`;
+      track.appendChild(conn);
+    }
+    const el = document.createElement('div');
+    el.className = `cache-node ${getNodeClass(i)}`;
+    el.style.animationDelay = (i * 60) + 'ms';
+    el.innerHTML = `
+      <div class="node-rank">#${i+1}</div>
+      <div class="node-key">${node.key}</div>
+      <div class="node-val">val=${node.val}</div>
+    `;
+    track.appendChild(el);
+  });
+}
+
+function renderOps() {
+  const grid = document.getElementById('ops-grid');
+  grid.innerHTML = '';
+  const show = completed.slice(-8);
+  show.forEach((op, i) => {
+    const el = document.createElement('div');
+    let cls, cmd, result;
+    if (op.type === 'put') {
+      if (op.evicted) {
+        cls = 'op-evict';
+        cmd = `PUT(${op.key},${op.val})`;
+        result = `evict ${op.evicted}`;
+      } else {
+        cls = 'op-put';
+        cmd = `PUT(${op.key},${op.val})`;
+        result = `stored`;
+      }
+    } else {
+      cls = op.hit ? 'op-hit' : 'op-miss';
+      cmd = `GET(${op.key})`;
+      result = op.hit ? '✓ HIT' : '✗ MISS';
+    }
+    el.className = `op-row ${cls}`;
+    el.style.animationDelay = (i * 80) + 'ms';
+    el.innerHTML = `<span class="op-cmd">${cmd}</span><span class="op-result">${result}</span>`;
+    grid.appendChild(el);
+  });
+}
+
+// Run operations with delay
+function runAll() {
+  ops.forEach((op, i) => {
+    setTimeout(() => {
+      doOp(op);
+      render();
+      renderOps();
+    }, i * 700 + 400);
+  });
+}
+
+// Initial render
+render();
+runAll();
+</script>
+</body>
+</html>
